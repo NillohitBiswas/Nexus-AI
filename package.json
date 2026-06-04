@@ -1,0 +1,43 @@
+{
+  "name": "nexus-insights",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@google/genai": "^2.6.0",
+    "@insforge/sdk": "^1.2.10",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@react-pdf/renderer": "^4.5.1",
+    "@upstash/redis": "^1.38.0",
+    "dotenv": "^17.4.2",
+    "groq-sdk": "^1.2.0",
+    "inngest": "^4.4.0",
+    "lucide-react": "^1.16.0",
+    "next": "16.2.6",
+    "pg": "^8.21.0",
+    "razorpay": "^2.9.6",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.6",
+    "prisma": "^7.8.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
