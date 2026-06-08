@@ -1,0 +1,218 @@
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, renderToStream, Font } from '@react-pdf/renderer';
+import { prisma } from '@/lib/db';
+import { getServerInsforgeClient } from '@/lib/auth';
+
+// Create styles
+const styles = StyleSheet.create({
+  page: {
+    flexDirection: 'column',
+    backgroundColor: '#ffffff',
+    padding: 40,
+    fontFamily: 'Helvetica',
+  },
+  header: {
+    marginBottom: 30,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eeeeee',
+    paddingBottom: 20,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 8,
+  },
+  section: {
+    margin: 10,
+    padding: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#374151',
+    marginTop: 20,
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+    paddingBottom: 5,
+  },
+  text: {
+    fontSize: 12,
+    color: '#4b5563',
+    lineHeight: 1.5,
+  },
+  themeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f3f4f6',
+  },
+  themeName: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  themeValue: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: 'center',
+    color: '#9ca3af',
+    fontSize: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#eeeeee',
+    paddingTop: 10,
+  }
+});
+
+interface ReportProps {
+  scan: any;
+  themes: any[];
+  agencyName: string;
+}
+
+// React-PDF Document Component
+export const ReportDocument = ({ scan, themes, agencyName }: ReportProps) => {
+  const summary = scan.executiveSummary as any;
+  const healthScore = summary?.audienceHealthScore || 'N/A';
+
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{agencyName} Intelligence Report</Text>
+          <Text style={styles.subtitle}>Video: {scan.video.title}</Text>
+          <Text style={styles.subtitle}>Channel: {scan.video.channel.name}</Text>
+          <Text style={styles.subtitle}>Date: {new Date(scan.completedAt || new Date()).toLocaleDateString()}</Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Executive Summary</Text>
+          <Text style={styles.text}>{summary?.executiveSummary || 'No executive summary available.'}</Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Key Metrics</Text>
+          <View style={styles.themeRow}>
+            <Text style={styles.themeName}>Average Sentiment</Text>
+            <Text style={styles.themeValue}>{(scan.weightedSentiment || 0).toFixed(2)}</Text>
+          </View>
+          <View style={styles.themeRow}>
+            <Text style={styles.themeName}>Audience Health Score</Text>
+            <Text style={styles.themeValue}>{healthScore}/100</Text>
+          </View>
+          <View style={styles.themeRow}>
+            <Text style={styles.themeName}>Pain Index</Text>
+            <Text style={styles.themeValue}>{(scan.weightedPainIndex || 0).toFixed(2)}</Text>
+          </View>
+          <View style={styles.themeRow}>
+            <Text style={styles.themeName}>Demand Velocity</Text>
+            <Text style={styles.themeValue}>{(scan.weightedDemandVelocity || 0).toFixed(2)}</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Top Themes Discussed</Text>
+          {themes.length === 0 ? (
+            <Text style={styles.text}>No themes detected.</Text>
+          ) : (
+            themes.map((t, i) => (
+              <View key={i} style={styles.themeRow}>
+                <Text style={styles.themeName}>{t.themeKey}</Text>
+                <Text style={styles.themeValue}>{t.commentCount} comments (Sentiment: {(t.avgSentiment || 0).toFixed(2)})</Text>
+              </View>
+            ))
+          )}
+        </View>
+
+        {summary?.topPainSignals && summary.topPainSignals.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Top Pain Signals</Text>
+            {summary.topPainSignals.map((signal: string, i: number) => (
+              <Text key={i} style={{ ...styles.text, marginBottom: 5 }}>• {signal}</Text>
+            ))}
+          </View>
+        )}
+
+        {summary?.topDemandSignals && summary.topDemandSignals.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Feature/Content Requests</Text>
+            {summary.topDemandSignals.map((signal: string, i: number) => (
+              <Text key={i} style={{ ...styles.text, marginBottom: 5 }}>• {signal}</Text>
+            ))}
+          </View>
+        )}
+
+        <View style={styles.footer}>
+          <Text>Generated by Nexus Insights • Powered by {agencyName}</Text>
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
+export async function generateAndUploadReport(scanId: string, agencyName: string = "Nexus Agency") {
+  // 1. Fetch scan data
+  const scan = await prisma.scan.findUnique({
+    where: { id: scanId },
+    include: {
+      video: {
+        include: { channel: true }
+      }
+    }
+  });
+
+  if (!scan) throw new Error("Scan not found");
+
+  const themes = await prisma.scanTheme.findMany({
+    where: { scanId },
+    orderBy: { commentCount: 'desc' },
+    take: 10
+  });
+
+  // 2. Generate PDF stream
+  const stream = await renderToStream(<ReportDocument scan={scan} themes={themes} agencyName={agencyName} />);
+
+  // Convert NodeJS ReadableStream to Buffer
+  const chunks: any[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  }
+  const buffer = Buffer.concat(chunks);
+
+  // 3. Upload to InsForge Storage
+  const client = await getServerInsforgeClient();
+  const fileName = `reports/report_${scanId}_${Date.now()}.pdf`;
+
+  const pdfBlob = new Blob([buffer], { type: 'application/pdf' });
+  const { data, error } = await client.storage
+    .from('reports') // Bucket name
+    .upload(fileName, pdfBlob);
+
+  if (error) {
+    console.error("Storage upload error:", error);
+    throw new Error(`Failed to upload PDF: ${error.message}`);
+  }
+
+  const publicUrl =
+    typeof client.storage.from("reports").getPublicUrl === "function"
+      ? (client.storage.from("reports").getPublicUrl(fileName) as { publicUrl?: string })
+          ?.publicUrl ?? fileName
+      : fileName;
+
+  return {
+    success: true,
+    url: publicUrl,
+  };
+}
