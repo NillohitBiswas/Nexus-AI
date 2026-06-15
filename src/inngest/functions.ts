@@ -39,7 +39,7 @@ export const analyzeVideoFn = inngest.createFunction(
     const { videoId, userId, scanId } = event.data;
 
     // Get current scan record or create one if missing
-    let scan = await prisma.scan.findUnique({
+    const scan = await prisma.scan.findUnique({
       where: { id: scanId },
       include: { video: { include: { channel: true } } },
     });

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getDashboardData, getYoutubeOAuthUrl } from "../../actions/youtube";
 import { retryScanAction } from "../../actions/scans";
@@ -40,19 +40,51 @@ const Youtube = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 
+type Comment = {
+  id?: string;
+  rawText: string;
+  category?: string;
+  authorName?: string;
+};
+
+type Scan = {
+  id: string;
+  status?: string;
+  progress?: number;
+  completedAt?: string | Date | null;
+  emergencyAlert?: boolean | string | null;
+  deltaReport?: unknown | null;
+  video?: { comments?: Comment[]; title?: string; url?: string };
+  executiveSummary?: unknown | null;
+  [key: string]: any;
+};
+
+type Channel = {
+  id?: string;
+  name?: string;
+  thumbnail?: string | null;
+  subCount?: number;
+};
+
+type Usage = {
+  scansThisMonth: number;
+  maxScansPerMonth: number;
+  canScan: boolean;
+  scanGateReason: string | null;
+};
+
+type User = {
+  tier?: string;
+};
+
 export default function AnalyzerPage() {
   const router = useRouter();
   
   // Data states
-  const [user, setUser] = useState<any>(null);
-  const [channels, setChannels] = useState<any[]>([]);
-  const [scans, setScans] = useState<any[]>([]);
-  const [usage, setUsage] = useState<{
-    scansThisMonth: number;
-    maxScansPerMonth: number;
-    canScan: boolean;
-    scanGateReason: string | null;
-  } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [scans, setScans] = useState<Scan[]>([]);
+  const [usage, setUsage] = useState<Usage | null>(null);
   const [loading, setLoading] = useState(true);
 
   function scanFailureMessage(scan: any): string | null {
@@ -67,7 +99,7 @@ export default function AnalyzerPage() {
   const [urlInput, setUrlInput] = useState("");
   const [isCompetitorScan, setIsCompetitorScan] = useState(false);
   const [activeScanId, setActiveScanId] = useState<string | null>(null);
-  const [activeScan, setActiveScan] = useState<any>(null);
+  const [activeScan, setActiveScan] = useState<Scan | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [scanLoading, setScanLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("Initializing scan...");
@@ -78,7 +110,7 @@ export default function AnalyzerPage() {
   const [replyDraftText, setReplyDraftText] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleDraftReply = (c: any) => {
+  const handleDraftReply = (c: Comment) => {
     let draft = "";
     const lower = c.rawText.toLowerCase();
     if (c.category === "BUG" || c.category === "COMPLAINT") {
@@ -89,7 +121,7 @@ export default function AnalyzerPage() {
       draft = `Thanks so much for the feedback, ${c.authorName}! We're thrilled to hear you are enjoying the content. Keep commenting!`;
     }
     setReplyDraftText(draft);
-    setDraftingCommentId(c.id);
+    setDraftingCommentId(c.id ?? null);
   };
 
   const handleCopyText = (text: string, id: string) => {
@@ -124,8 +156,36 @@ export default function AnalyzerPage() {
     }
   };
 
+  const handleLoadPastScan = async (scanId: string) => {
+    setScanLoading(true);
+    setScanError(null);
+    setActiveScanId(null);
+    try {
+      const res = await fetch(`/api/analyze?scanId=${scanId}`, { credentials: "include" });
+      if (res.status === 401) {
+        router.push("/login?redirectTo=/analyzer");
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        setActiveScan(data);
+        if (data.status === "COMPLETE" && typeof window !== "undefined") {
+          sessionStorage.setItem("nexus_activeScanId", scanId);
+        }
+      } else {
+        setScanError("Failed to fetch scan results");
+      }
+    } catch (err) {
+      setScanError("Error loading scan details");
+    } finally {
+      setScanLoading(false);
+    }
+  };
+
   useEffect(() => {
-    loadData();
+    startTransition(() => {
+      void loadData();
+    });
   }, []);
 
   // After refresh: resume in-progress scans or reload last completed report
@@ -136,8 +196,10 @@ export default function AnalyzerPage() {
       (s) => s.status === "PENDING" || s.status === "RUNNING",
     );
     if (running) {
-      setActiveScanId(running.id);
-      setScanLoading(true);
+      startTransition(() => {
+        setActiveScanId(running.id);
+        setScanLoading(true);
+      });
       return;
     }
 
@@ -301,32 +363,6 @@ export default function AnalyzerPage() {
     }
   };
 
-  const handleLoadPastScan = async (scanId: string) => {
-    setScanLoading(true);
-    setScanError(null);
-    setActiveScanId(null);
-    try {
-      const res = await fetch(`/api/analyze?scanId=${scanId}`, { credentials: "include" });
-      if (res.status === 401) {
-        router.push("/login?redirectTo=/analyzer");
-        return;
-      }
-      if (res.ok) {
-        const data = await res.json();
-        setActiveScan(data);
-        if (data.status === "COMPLETE" && typeof window !== "undefined") {
-          sessionStorage.setItem("nexus_activeScanId", scanId);
-        }
-      } else {
-        setScanError("Failed to fetch scan results");
-      }
-    } catch (err) {
-      setScanError("Error loading scan details");
-    } finally {
-      setScanLoading(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 text-zinc-900">
@@ -341,13 +377,13 @@ export default function AnalyzerPage() {
   // Parse Executive Summary JSON if complete
   const summaryData = activeScan?.executiveSummary && typeof activeScan.executiveSummary === "string"
     ? JSON.parse(activeScan.executiveSummary)
-    : activeScan?.executiveSummary || null;
+    : (activeScan?.executiveSummary as object) || null;
 
   // Filtered comments if we have any loaded inside activeScan.video.comments
-  const comments = activeScan?.video?.comments || [];
+  const comments: Comment[] = (activeScan?.video?.comments as Comment[] | undefined) || [];
   const filteredComments = commentFilter === "ALL"
     ? comments
-    : comments.filter((c: any) => String(c.category || "").toUpperCase() === commentFilter);
+    : comments.filter((c) => String(c.category || "").toUpperCase() === commentFilter);
 
   return (
     <div className="min-h-screen text-zinc-900">
@@ -588,7 +624,7 @@ export default function AnalyzerPage() {
                       <p className="text-sm text-zinc-700 leading-relaxed">
                         A sudden, severe surge in bug reports or complaints has been flagged in comment ingestion!
                       </p>
-                      {activeScan.deltaReport && (
+                      {activeScan.deltaReport != null && (
                         <p className="text-xs text-red-400 font-semibold mt-1">
                           Report details: {typeof activeScan.deltaReport === "string" ? activeScan.deltaReport : JSON.stringify((activeScan.deltaReport as any).message || activeScan.deltaReport)}
                         </p>
@@ -1017,7 +1053,7 @@ export default function AnalyzerPage() {
                                   </span>
                                   <span className="text-xs text-zinc-700 font-bold">{lead.authorName}</span>
                                 </div>
-                                <p className="text-sm text-zinc-800">"{lead.rawText}"</p>
+                                <p className="text-sm text-zinc-800">&quot;{lead.rawText}&quot;</p>
                               </div>
                               <div className="flex sm:flex-col items-center sm:items-end justify-between shrink-0 gap-2">
                                 <span className="text-xs text-zinc-500">Conv Prob: <strong>{(Number(lead.conversionProb || lead.pc) * 100).toFixed(0)}%</strong></span>
@@ -1088,7 +1124,7 @@ export default function AnalyzerPage() {
                                   <span className="text-xs font-bold text-white">Grade {p.testimonialGrade || "A"} Testimonial</span>
                                   <span className="text-[10px] text-zinc-500">Score: {Number(p.testimonialScore || 0).toFixed(2)}</span>
                                 </div>
-                                <p className="text-xs text-zinc-600 truncate">"{p.rawText}"</p>
+                                <p className="text-xs text-zinc-600 truncate">&quot;{p.rawText}&quot;</p>
                                 <span className="text-[9px] text-zinc-600 block text-right mt-1">— {p.authorName}</span>
                               </div>
                             ))}
@@ -1174,7 +1210,7 @@ export default function AnalyzerPage() {
                         <div className="space-y-2">
                           {viralHook.titles.map((t: any, idx: number) => (
                             <div key={idx} className="p-4 rounded-xl border border-zinc-200 bg-white flex justify-between items-center gap-4">
-                              <p className="text-sm font-bold text-zinc-900">"{t.title}"</p>
+                              <p className="text-sm font-bold text-zinc-900">&quot;{t.title}&quot;</p>
                               <span className="text-xs text-red-500 font-bold tracking-wider shrink-0 bg-red-500/10 border border-red-100 px-2.5 py-1 rounded">
                                 Predicted EM: ×{Number(t.predictedEM || 1.0).toFixed(2)}
                               </span>
@@ -1233,7 +1269,7 @@ export default function AnalyzerPage() {
                                 <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Defector comment quotes:</span>
                                 <ul className="space-y-1.5 pl-3 list-disc text-xs text-zinc-600">
                                   {radar.topDefectors.map((quote: string, i: number) => (
-                                    <li key={i}>"{quote}"</li>
+                                    <li key={i}>&quot;{quote}&quot;</li>
                                   ))}
                                 </ul>
                               </div>
@@ -1358,7 +1394,7 @@ export default function AnalyzerPage() {
                           {c.intent && (
                             <div className="text-[11px] text-zinc-500 flex gap-1">
                               <span className="font-semibold text-zinc-500">Intent:</span>
-                              <span className="italic">"{c.intent}"</span>
+                              <span className="italic">&quot;{c.intent}&quot;</span>
                             </div>
                           )}
                           

@@ -2,7 +2,7 @@
  
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import {
   LayoutDashboard,
   Activity,
@@ -59,7 +59,7 @@ export function DashboardNav({
   // Sync collapse state with URL changes
   useEffect(() => {
     if (isAnalyzerRoute) {
-      setIsAnalyzerExpanded(true);
+      startTransition(() => setIsAnalyzerExpanded(true));
     }
   }, [isAnalyzerRoute]);
  

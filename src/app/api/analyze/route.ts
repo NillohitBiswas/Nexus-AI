@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     let channelId = "ch_default";
     let channelName = "Default Channel";
     let videoTitle = "Default Video Title";
-    let channelThumbnail = "";
+    const channelThumbnail = "";
 
     const apiKey = process.env.YOUTUBE_API_KEY;
     if (apiKey && !apiKey.includes("<PLACEHOLDER")) {

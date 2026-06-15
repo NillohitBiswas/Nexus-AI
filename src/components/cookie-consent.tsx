@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "./ui/Button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import Link from "next/link";
 
 export function CookieConsent() {
@@ -9,7 +9,7 @@ export function CookieConsent() {
 
   useEffect(() => {
     if (!localStorage.getItem("nexus-cookie-consent")) {
-      setVisible(true);
+      startTransition(() => setVisible(true));
     }
   }, []);
 

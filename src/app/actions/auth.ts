@@ -20,7 +20,21 @@ function getClient() {
   });
 }
 
-function getAccessToken(payload: any) {
+type AuthPayload = {
+  accessToken?: string;
+  access_token?: string;
+  session?: { accessToken?: string; access_token?: string };
+  user?: {
+    email?: string;
+    id?: string;
+    emailVerified?: boolean;
+    email_verified?: boolean;
+    isEmailVerified?: boolean;
+    verified?: boolean;
+  };
+};
+
+function getAccessToken(payload: AuthPayload | undefined | null) {
   return (
     payload?.accessToken ||
     payload?.access_token ||
@@ -30,7 +44,7 @@ function getAccessToken(payload: any) {
   );
 }
 
-function isUnverifiedUser(user: any) {
+function isUnverifiedUser(user: AuthPayload["user"] | undefined | null) {
   const flags = [
     user?.emailVerified,
     user?.email_verified,
@@ -90,9 +104,9 @@ export async function loginAction(formData: FormData) {
     }
 
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Login action error:", err);
-    return { error: err.message || "An unexpected error occurred" };
+    return { error: (err as Error)?.message || String(err) || "An unexpected error occurred" };
   }
 }
 
@@ -157,9 +171,9 @@ export async function signupAction(formData: FormData) {
     }
 
     return { success: true, message: "Account created. Please verify your email, then log in." };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Signup action error:", err);
-    return { error: err.message || "An unexpected error occurred" };
+    return { error: (err as Error)?.message || String(err) || "An unexpected error occurred" };
   }
 }
 
@@ -216,9 +230,9 @@ export async function verifyEmailAction(formData: FormData) {
     }
 
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Verify email action error:", err);
-    return { error: err.message || "An unexpected error occurred" };
+    return { error: (err as Error)?.message || String(err) || "An unexpected error occurred" };
   }
 }
 
@@ -230,7 +244,7 @@ export async function resendVerificationEmailAction(formData: FormData) {
 
   const client = getClient();
   try {
-    const payload: any = {
+    const payload = {
       email,
       redirectTo: getAuthRedirectTo(),
       options: {
@@ -244,8 +258,8 @@ export async function resendVerificationEmailAction(formData: FormData) {
     }
 
     return { success: true, message: "Verification email sent. Check your inbox." };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Resend verification email action error:", err);
-    return { error: err.message || "An unexpected error occurred" };
+    return { error: (err as Error)?.message || String(err) || "An unexpected error occurred" };
   }
 }

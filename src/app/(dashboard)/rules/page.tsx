@@ -62,7 +62,9 @@ export default function RulesPage() {
   };
 
   useEffect(() => {
-    loadData();
+    startTransition(() => {
+      void loadData();
+    });
   }, []);
 
   const handleCreateRule = async (e: React.FormEvent) => {
@@ -325,8 +327,8 @@ export default function RulesPage() {
 
                     <div>
                       <span className="text-xs text-zinc-500 font-bold block mb-1">Reply Template:</span>
-                      <p className="text-xs text-zinc-800 bg-zinc-100 p-2.5 rounded-xl border border-zinc-200 leading-relaxed italic">
-                        "{rule.template}"
+                        <p className="text-xs text-zinc-800 bg-zinc-100 p-2.5 rounded-xl border border-zinc-200 leading-relaxed italic">
+                        &quot;{rule.template}&quot;
                       </p>
                     </div>
 
@@ -414,7 +416,7 @@ export default function RulesPage() {
                     <div>
                       <span className="text-[10px] text-zinc-500 block mb-0.5">Drafted Reply:</span>
                       <p className="text-xs text-zinc-700 bg-zinc-100 p-2 rounded-lg border border-zinc-200 leading-relaxed italic">
-                        "{log.draftText}"
+                        &quot;{log.draftText}&quot;
                       </p>
                     </div>
 
