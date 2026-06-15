@@ -1076,7 +1076,7 @@ export default function AnalyzerPage() {
                                   </span>
                                   <span className="text-xs text-zinc-700 font-bold">{lead.authorName}</span>
                                 </div>
-                                <p className="text-sm text-zinc-800">"{lead.rawText}"</p>
+                                <p className="text-sm text-zinc-800">&quot;{lead.rawText}&quot;</p>
                               </div>
                               <div className="flex sm:flex-col items-center sm:items-end justify-between shrink-0 gap-2">
                                 <span className="text-xs text-zinc-500">Conv Prob: <strong>{(Number(lead.conversionProb || lead.pc) * 100).toFixed(0)}%</strong></span>
@@ -1147,7 +1147,7 @@ export default function AnalyzerPage() {
                                   <span className="text-xs font-bold text-white">Grade {p.testimonialGrade || "A"} Testimonial</span>
                                   <span className="text-[10px] text-zinc-500">Score: {Number(p.testimonialScore || 0).toFixed(2)}</span>
                                 </div>
-                                <p className="text-xs text-zinc-600 truncate">"{p.rawText}"</p>
+                                <p className="text-xs text-zinc-600 truncate">&quot;{p.rawText}&quot;</p>
                                 <span className="text-[9px] text-zinc-600 block text-right mt-1">— {p.authorName}</span>
                               </div>
                             ))}
@@ -1233,7 +1233,7 @@ export default function AnalyzerPage() {
                         <div className="space-y-2">
                           {viralHook.titles.map((t: any, idx: number) => (
                             <div key={idx} className="p-4 rounded-xl border border-zinc-200 bg-white flex justify-between items-center gap-4">
-                              <p className="text-sm font-bold text-zinc-900">"{t.title}"</p>
+                              <p className="text-sm font-bold text-zinc-900">&quot;{t.title}&quot;</p>
                               <span className="text-xs text-red-500 font-bold tracking-wider shrink-0 bg-red-500/10 border border-red-100 px-2.5 py-1 rounded">
                                 Predicted EM: ×{Number(t.predictedEM || 1.0).toFixed(2)}
                               </span>
@@ -1292,7 +1292,7 @@ export default function AnalyzerPage() {
                                 <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Defector comment quotes:</span>
                                 <ul className="space-y-1.5 pl-3 list-disc text-xs text-zinc-600">
                                   {radar.topDefectors.map((quote: string, i: number) => (
-                                    <li key={i}>"{quote}"</li>
+                                    <li key={i}>&quot;{quote}&quot;</li>
                                   ))}
                                 </ul>
                               </div>
@@ -1417,7 +1417,7 @@ export default function AnalyzerPage() {
                           {c.intent && (
                             <div className="text-[11px] text-zinc-500 flex gap-1">
                               <span className="font-semibold text-zinc-500">Intent:</span>
-                              <span className="italic">"{c.intent}"</span>
+                              <span className="italic">&quot;{c.intent}&quot;</span>
                             </div>
                           )}
                           
