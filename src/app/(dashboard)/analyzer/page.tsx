@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, startTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getDashboardData, getYoutubeOAuthUrl } from "../../actions/youtube";
 import { retryScanAction } from "../../actions/scans";
@@ -40,19 +40,48 @@ const Youtube = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 
+type Comment = {
+  id?: string;
+  rawText: string;
+  category?: string;
+  authorName?: string;
+};
+
+type Scan = {
+  id: string;
+  status?: string;
+  progress?: number;
+  completedAt?: string | null;
+  video?: { comments?: Comment[]; title?: string };
+  executiveSummary?: string | object | null;
+};
+
+type Channel = {
+  id?: string;
+  name?: string;
+  thumbnail?: string;
+  subCount?: number;
+};
+
+type Usage = {
+  scansThisMonth: number;
+  maxScansPerMonth: number | Infinity;
+  canScan: boolean;
+  scanGateReason: string | null;
+};
+
+type User = {
+  tier?: string;
+};
+
 export default function AnalyzerPage() {
   const router = useRouter();
   
   // Data states
-  const [user, setUser] = useState<any>(null);
-  const [channels, setChannels] = useState<any[]>([]);
-  const [scans, setScans] = useState<any[]>([]);
-  const [usage, setUsage] = useState<{
-    scansThisMonth: number;
-    maxScansPerMonth: number;
-    canScan: boolean;
-    scanGateReason: string | null;
-  } | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [channels, setChannels] = useState<Channel[]>([]);
+  const [scans, setScans] = useState<Scan[]>([]);
+  const [usage, setUsage] = useState<Usage | null>(null);
   const [loading, setLoading] = useState(true);
 
   function scanFailureMessage(scan: any): string | null {
@@ -67,7 +96,7 @@ export default function AnalyzerPage() {
   const [urlInput, setUrlInput] = useState("");
   const [isCompetitorScan, setIsCompetitorScan] = useState(false);
   const [activeScanId, setActiveScanId] = useState<string | null>(null);
-  const [activeScan, setActiveScan] = useState<any>(null);
+  const [activeScan, setActiveScan] = useState<Scan | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [scanLoading, setScanLoading] = useState(false);
   const [progressMsg, setProgressMsg] = useState("Initializing scan...");
@@ -78,7 +107,7 @@ export default function AnalyzerPage() {
   const [replyDraftText, setReplyDraftText] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const handleDraftReply = (c: any) => {
+  const handleDraftReply = (c: Comment) => {
     let draft = "";
     const lower = c.rawText.toLowerCase();
     if (c.category === "BUG" || c.category === "COMPLAINT") {
@@ -371,13 +400,13 @@ export default function AnalyzerPage() {
   // Parse Executive Summary JSON if complete
   const summaryData = activeScan?.executiveSummary && typeof activeScan.executiveSummary === "string"
     ? JSON.parse(activeScan.executiveSummary)
-    : activeScan?.executiveSummary || null;
+    : (activeScan?.executiveSummary as object) || null;
 
   // Filtered comments if we have any loaded inside activeScan.video.comments
-  const comments = activeScan?.video?.comments || [];
+  const comments: Comment[] = (activeScan?.video?.comments as Comment[] | undefined) || [];
   const filteredComments = commentFilter === "ALL"
     ? comments
-    : comments.filter((c: any) => String(c.category || "").toUpperCase() === commentFilter);
+    : comments.filter((c) => String(c.category || "").toUpperCase() === commentFilter);
 
   return (
     <div className="min-h-screen text-zinc-900">
