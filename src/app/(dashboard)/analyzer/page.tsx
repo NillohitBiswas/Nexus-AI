@@ -87,8 +87,8 @@ export default function AnalyzerPage() {
   const [usage, setUsage] = useState<Usage | null>(null);
   const [loading, setLoading] = useState(true);
 
-  function scanFailureMessage(scan: any): string | null {
-    const summary = scan?.executiveSummary;
+  function scanFailureMessage(scan: unknown): string | null {
+    const summary = (scan as any)?.executiveSummary;
     if (summary && typeof summary === "object" && "error" in summary) {
       return String((summary as { error?: string }).error || "");
     }
@@ -221,7 +221,9 @@ export default function AnalyzerPage() {
 
     const latestComplete = scans.find((s) => s.status === "COMPLETE");
     if (latestComplete && !activeScan) {
-      void handleLoadPastScan(latestComplete.id);
+      startTransition(() => {
+        void handleLoadPastScan(latestComplete.id);
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run when scans load after refresh
   }, [loading, scans]);
