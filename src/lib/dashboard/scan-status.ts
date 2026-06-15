@@ -45,7 +45,7 @@ export async function repairStuckScansForUser(userId: string) {
   const stuck = await prisma.scan.findMany({
     where: {
       status: "RUNNING",
-      userId,
+      video: { channel: { userId } },
     },
     select: { id: true, executiveSummary: true },
   });

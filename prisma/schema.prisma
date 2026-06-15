@@ -3,84 +3,78 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
-  id              String         @id @default(uuid())
-  email           String         @unique
-  tier            String         @default("FREE") // FREE, CREATOR, GROWTH, AGENCY
-  workspaceId     String?
-  byokEnabled     Boolean        @default(false)
-  credentials     String?        // Encrypted GCP credentials for BYOK
-  apiToken        String?        @unique // For REST API authentication
-  webhookUrl      String?        // For delivering signed webhooks
-  channels        Channel[]
-  scans           Scan[]
-  responseRules   ResponseRule[]
-  subscriptions   Subscription[]
-  usageRecords    UsageRecord[]
-  apiUsageEvents  ApiUsageEvent[]
+  id             String          @id @default(uuid())
+  email          String          @unique
+  tier           String          @default("FREE")
+  workspaceId    String?
+  byokEnabled    Boolean         @default(false)
+  credentials    String?
+  apiToken       String?         @unique
+  webhookUrl     String?
+  apiUsageEvents ApiUsageEvent[]
+  channels       Channel[]
+  responseRules  ResponseRule[]
+  subscriptions  Subscription[]
+  usageRecords   UsageRecord[]
 }
 
 model Channel {
-  id                   String             @id @default(uuid())
-  userId               String?
-  user                 User?              @relation(fields: [userId], references: [id])
-  youtubeAccessToken   String?
-  youtubeRefreshToken  String?
-  name                 String
-  subCount             Int                @default(0)
-  thumbnail            String?
-  isCompetitor         Boolean            @default(false)
-  videos               Video[]
-  commenters           ChannelCommenter[]
-  termHistory          ChannelTermHistory[]
+  id                  String               @id @default(uuid())
+  userId              String
+  youtubeAccessToken  String?
+  youtubeRefreshToken String?
+  name                String
+  subCount            Int                  @default(0)
+  thumbnail           String?
+  isCompetitor        Boolean              @default(false)
+  user                User                 @relation(fields: [userId], references: [id])
+  commenters          ChannelCommenter[]
+  termHistory         ChannelTermHistory[]
+  videos              Video[]
 }
 
 model Video {
   id                String                @id @default(uuid())
   channelId         String
-  channel           Channel               @relation(fields: [channelId], references: [id])
-  videoId           String                @unique // YouTube Video ID
+  videoId           String                @unique
   title             String
   url               String
   scanCount         Int                   @default(0)
   dominantArchetype String?
   comments          CommentIntelligence[]
   scans             Scan[]
+  channel           Channel               @relation(fields: [channelId], references: [id])
 }
 
 model CommentIntelligence {
-  id                 String   @id @default(uuid())
+  id                 String                 @id @default(uuid())
   videoId            String
-  video              Video    @relation(fields: [videoId], references: [id])
   parentId           String?
-  youtubeCommentId   String   @unique
+  youtubeCommentId   String                 @unique
   rawText            String
   authorName         String
   authorChannelId    String
-  likeCount          Int      @default(0)
-  replyCount         Int      @default(0)
+  likeCount          Int                    @default(0)
+  replyCount         Int                    @default(0)
   publishedAt        DateTime
-  
   category           String?
   sentiment          Float?
   intensity          Int?
   intent             String?
   weight             Float?
   effectiveWeight    Float?
-  isContentGap       Boolean  @default(false)
-  
-  isGhostThread      Boolean  @default(false)
-  threadDepth        Int      @default(0)
-  
+  isContentGap       Boolean                @default(false)
+  isGhostThread      Boolean                @default(false)
+  threadDepth        Int                    @default(0)
   skillSignal        String?
   contextSignal      String?
   motivationSignal   String?
   lifecycleSignal    String?
   outcomeSignal      String?
-  
   buyingSignal       String?
   conversionProb     Float?
   objectionType      String?
@@ -90,21 +84,17 @@ model CommentIntelligence {
   beforeStateText    String?
   threadPattern      String?
   confidenceScore    Float?
-  isThreadRoot       Boolean  @default(false)
-  
-  fromCache          Boolean  @default(false)
-  
-  embedding          Unsupported("vector(768)")?
+  isThreadRoot       Boolean                @default(false)
+  fromCache          Boolean                @default(false)
+  embedding          Unsupported("vector")?
+  video              Video                  @relation(fields: [videoId], references: [id])
   competitorMentions CompetitorMention[]
 }
 
 model Scan {
   id                        String              @id @default(uuid())
   videoId                   String
-  video                     Video               @relation(fields: [videoId], references: [id])
-  userId                    String?
-  user                      User?               @relation(fields: [userId], references: [id])
-  status                    String              // RUNNING, COMPLETE, FAILED
+  status                    String
   progress                  Float               @default(0)
   isCompetitorScan          Boolean             @default(false)
   weightedSentiment         Float?
@@ -144,36 +134,37 @@ model Scan {
   viralHookPrediction       Json?
   audienceHealthScore       Float?
   skillBreakdown            Json?
-  themes                    ScanTheme[]
-  newsCorrelations          NewsCorrelation[]
+  userId                    String?
   competitorMentions        CompetitorMention[]
+  newsCorrelations          NewsCorrelation[]
+  video                     Video               @relation(fields: [videoId], references: [id])
+  themes                    ScanTheme[]
 }
 
 model CompetitorMention {
   id           String              @id @default(uuid())
   scanId       String
-  scan         Scan                @relation(fields: [scanId], references: [id])
   commentId    String
-  comment      CommentIntelligence @relation(fields: [commentId], references: [id])
   entity       String
   signalType   String
   netSentiment Float?
   rawText      String?
+  comment      CommentIntelligence @relation(fields: [commentId], references: [id])
+  scan         Scan                @relation(fields: [scanId], references: [id])
 }
 
 model ScanTheme {
-  id             String  @id @default(uuid())
-  scanId         String
-  scan           Scan    @relation(fields: [scanId], references: [id])
-  themeKey       String
-  avgSentiment   Float
-  commentCount   Int
+  id           String @id @default(uuid())
+  scanId       String
+  themeKey     String
+  avgSentiment Float
+  commentCount Int
+  scan         Scan   @relation(fields: [scanId], references: [id])
 }
 
 model ResponseRule {
   id           String        @id @default(uuid())
   userId       String
-  user         User          @relation(fields: [userId], references: [id])
   videoId      String?
   keywords     String[]
   intents      String[]
@@ -181,53 +172,54 @@ model ResponseRule {
   minIntensity Int           @default(0)
   isActive     Boolean       @default(true)
   logs         ResponseLog[]
+  user         User          @relation(fields: [userId], references: [id])
 }
 
 model ResponseLog {
-  id             String        @id @default(uuid())
+  id             String       @id @default(uuid())
   ruleId         String
-  rule           ResponseRule  @relation(fields: [ruleId], references: [id])
   commentId      String
   draftText      String
-  status         String        // PENDING, POSTING, POSTED, FAILED, BLOCKED_BY_GUARD, QUOTA_PAUSED
+  status         String
   scheduledAt    DateTime
   postedAt       DateTime?
   youtubeReplyId String?
+  rule           ResponseRule @relation(fields: [ruleId], references: [id])
 }
 
 model Subscription {
   id               String   @id @default(uuid())
   userId           String
-  user             User     @relation(fields: [userId], references: [id])
-  provider         String   // RAZORPAY, DODO
+  provider         String
   subscriptionId   String
   status           String
   currentPeriodEnd DateTime
+  user             User     @relation(fields: [userId], references: [id])
 }
 
 model UsageRecord {
-  id         String   @id @default(uuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  type       String   // SCAN, APIFY, REPLY, COMPETITOR_SCAN
-  quantity   Int
-  amount     Float    @default(0)
-  reported   Boolean  @default(false)
-  createdAt  DateTime @default(now())
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  quantity  Int
+  amount    Float    @default(0)
+  reported  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model ApiUsageEvent {
   id        String   @id @default(uuid())
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
   scanId    String?
-  provider  String   // GROQ, GEMINI, YOUTUBE, APIFY, INNGEST, INSFORGE, REDIS
+  provider  String
   operation String
   model     String?
   units     Int      @default(1)
   amount    Float    @default(0)
   metadata  Json?
   createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([provider, createdAt])
   @@index([userId, createdAt])
@@ -236,27 +228,27 @@ model ApiUsageEvent {
 model ChannelCommenter {
   id               String  @id @default(uuid())
   channelId        String
-  channel          Channel @relation(fields: [channelId], references: [id])
   authorChannelId  String
   isSuperFan       Boolean @default(false)
   sentimentHistory Float[]
+  channel          Channel @relation(fields: [channelId], references: [id])
 }
 
 model ChannelTermHistory {
   id         String   @id @default(uuid())
   channelId  String
-  channel    Channel  @relation(fields: [channelId], references: [id])
   term       String
   count      Int
   recordedAt DateTime @default(now())
+  channel    Channel  @relation(fields: [channelId], references: [id])
 }
 
 model NewsCorrelation {
-  id         String   @id @default(uuid())
+  id         String                 @id @default(uuid())
   scanId     String
-  scan       Scan     @relation(fields: [scanId], references: [id])
   headline   String
   themeLabel String
   score      Float
-  embedding  Unsupported("vector(768)")?
+  embedding  Unsupported("vector")?
+  scan       Scan                   @relation(fields: [scanId], references: [id])
 }

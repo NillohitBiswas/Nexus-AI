@@ -23,7 +23,7 @@ export async function getDashboardData() {
       where: { userId: user.id },
     }),
     prisma.scan.findMany({
-      where: { userId: user.id },
+      where: { video: { channel: { userId: user.id } } },
       include: { video: true },
       orderBy: { completedAt: "desc" },
     }),

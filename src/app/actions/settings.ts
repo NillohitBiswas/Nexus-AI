@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { encrypt } from "@/lib/crypto";
 import { revalidatePath } from "next/cache";
 import crypto from "crypto";
+import { Prisma } from "@prisma/client";
 
 function generateApiToken(): string {
   return `nxs_${crypto.randomBytes(24).toString("hex")}`;
@@ -112,9 +113,9 @@ export async function disconnectChannel(channelId: string): Promise<void> {
     await prisma.channel.update({
       where: { id: channel.id },
       data: {
-        userId: null,
-        youtubeAccessToken: null,
-        youtubeRefreshToken: null,
+        userId: { set: null } as unknown as Prisma.StringFieldUpdateOperationsInput,
+        youtubeAccessToken: { set: null } as unknown as Prisma.StringFieldUpdateOperationsInput,
+        youtubeRefreshToken: { set: null } as unknown as Prisma.StringFieldUpdateOperationsInput,
       },
     });
 

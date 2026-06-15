@@ -169,7 +169,7 @@ export async function POST(request: NextRequest) {
           subCount: 0,
           thumbnail: channelThumbnail,
           isCompetitor: Boolean(isCompetitorScan),
-        },
+        } as import("@prisma/client").Prisma.ChannelUncheckedCreateInput,
       });
     } else if (isCompetitorScan && !dbChannel.isCompetitor) {
       dbChannel = await prisma.channel.update({
