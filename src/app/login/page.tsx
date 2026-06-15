@@ -23,13 +23,17 @@ function LoginForm() {
 
   useEffect(() => {
     if (status === "success" && authType === "verify_email") {
-      setNotice("Email verified successfully. Sign in with your email and password.");
-      setError(null);
+      startTransition(() => {
+        setNotice("Email verified successfully. Sign in with your email and password.");
+        setError(null);
+      });
       return;
     }
     if (status === "error" && authType === "verify_email") {
-      setError(authError || "Email verification link failed. Request a new verification email.");
-      setNotice(null);
+      startTransition(() => {
+        setError(authError || "Email verification link failed. Request a new verification email.");
+        setNotice(null);
+      });
     }
   }, [status, authType, authError]);
 

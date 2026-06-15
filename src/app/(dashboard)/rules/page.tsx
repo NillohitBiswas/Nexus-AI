@@ -62,7 +62,9 @@ export default function RulesPage() {
   };
 
   useEffect(() => {
-    loadData();
+    startTransition(() => {
+      void loadData();
+    });
   }, []);
 
   const handleCreateRule = async (e: React.FormEvent) => {

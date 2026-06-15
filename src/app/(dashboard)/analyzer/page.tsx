@@ -124,8 +124,36 @@ export default function AnalyzerPage() {
     }
   };
 
+  const handleLoadPastScan = async (scanId: string) => {
+    setScanLoading(true);
+    setScanError(null);
+    setActiveScanId(null);
+    try {
+      const res = await fetch(`/api/analyze?scanId=${scanId}`, { credentials: "include" });
+      if (res.status === 401) {
+        router.push("/login?redirectTo=/analyzer");
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        setActiveScan(data);
+        if (data.status === "COMPLETE" && typeof window !== "undefined") {
+          sessionStorage.setItem("nexus_activeScanId", scanId);
+        }
+      } else {
+        setScanError("Failed to fetch scan results");
+      }
+    } catch (err) {
+      setScanError("Error loading scan details");
+    } finally {
+      setScanLoading(false);
+    }
+  };
+
   useEffect(() => {
-    loadData();
+    startTransition(() => {
+      void loadData();
+    });
   }, []);
 
   // After refresh: resume in-progress scans or reload last completed report
@@ -136,8 +164,10 @@ export default function AnalyzerPage() {
       (s) => s.status === "PENDING" || s.status === "RUNNING",
     );
     if (running) {
-      setActiveScanId(running.id);
-      setScanLoading(true);
+      startTransition(() => {
+        setActiveScanId(running.id);
+        setScanLoading(true);
+      });
       return;
     }
 
