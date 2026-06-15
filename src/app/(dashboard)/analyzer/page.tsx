@@ -51,21 +51,24 @@ type Scan = {
   id: string;
   status?: string;
   progress?: number;
-  completedAt?: string | null;
-  video?: { comments?: Comment[]; title?: string };
-  executiveSummary?: string | object | null;
+  completedAt?: string | Date | null;
+  emergencyAlert?: boolean | string | null;
+  deltaReport?: unknown | null;
+  video?: { comments?: Comment[]; title?: string; url?: string };
+  executiveSummary?: unknown | null;
+  [key: string]: any;
 };
 
 type Channel = {
   id?: string;
   name?: string;
-  thumbnail?: string;
+  thumbnail?: string | null;
   subCount?: number;
 };
 
 type Usage = {
   scansThisMonth: number;
-  maxScansPerMonth: number | Infinity;
+  maxScansPerMonth: number;
   canScan: boolean;
   scanGateReason: string | null;
 };
@@ -118,7 +121,7 @@ export default function AnalyzerPage() {
       draft = `Thanks so much for the feedback, ${c.authorName}! We're thrilled to hear you are enjoying the content. Keep commenting!`;
     }
     setReplyDraftText(draft);
-    setDraftingCommentId(c.id);
+    setDraftingCommentId(c.id ?? null);
   };
 
   const handleCopyText = (text: string, id: string) => {
@@ -356,32 +359,6 @@ export default function AnalyzerPage() {
       setProgressMsg("Retrying analysis pipeline...");
     } catch {
       setScanError("Could not retry scan. Check that Inngest dev is running.");
-      setScanLoading(false);
-    }
-  };
-
-  const handleLoadPastScan = async (scanId: string) => {
-    setScanLoading(true);
-    setScanError(null);
-    setActiveScanId(null);
-    try {
-      const res = await fetch(`/api/analyze?scanId=${scanId}`, { credentials: "include" });
-      if (res.status === 401) {
-        router.push("/login?redirectTo=/analyzer");
-        return;
-      }
-      if (res.ok) {
-        const data = await res.json();
-        setActiveScan(data);
-        if (data.status === "COMPLETE" && typeof window !== "undefined") {
-          sessionStorage.setItem("nexus_activeScanId", scanId);
-        }
-      } else {
-        setScanError("Failed to fetch scan results");
-      }
-    } catch (err) {
-      setScanError("Error loading scan details");
-    } finally {
       setScanLoading(false);
     }
   };
@@ -647,7 +624,7 @@ export default function AnalyzerPage() {
                       <p className="text-sm text-zinc-700 leading-relaxed">
                         A sudden, severe surge in bug reports or complaints has been flagged in comment ingestion!
                       </p>
-                      {activeScan.deltaReport && (
+                      {activeScan.deltaReport != null && (
                         <p className="text-xs text-red-400 font-semibold mt-1">
                           Report details: {typeof activeScan.deltaReport === "string" ? activeScan.deltaReport : JSON.stringify((activeScan.deltaReport as any).message || activeScan.deltaReport)}
                         </p>
