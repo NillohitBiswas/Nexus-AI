@@ -77,13 +77,13 @@ export default async function PricingPage() {
   return (
     <div className="min-h-screen bg-black text-zinc-100 relative">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[30%] left-[20%] w-[800px] h-[800px] rounded-full bg-red-600/5 blur-[150px]" />
+        <div className="absolute top-[-30%] left-[20%] w-200 h-200 rounded-full bg-red-600/5 blur-[150px]" />
       </div>
 
       <header className="border-b border-zinc-900 bg-black/40 backdrop-blur-md px-6 py-4 relative z-10">
         <div className="mx-auto max-w-6xl flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-red-600 to-red-950 border border-red-500/30">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-tr from-red-600 to-red-950 border border-red-500/30">
               <Sparkles className="h-4.5 w-4.5 text-white" />
             </div>
             <span className="font-extrabold tracking-tight text-white">

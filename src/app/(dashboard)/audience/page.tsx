@@ -31,7 +31,7 @@ export default async function AudiencePage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-white tracking-tight">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-zinc-900 tracking-tight">
           <Users className="h-7 w-7 text-red-500" />
           Audience Personas
         </h1>
@@ -71,7 +71,7 @@ export default async function AudiencePage() {
               </div>
               <div className="w-full bg-zinc-900 h-2 rounded-full overflow-hidden mt-3">
                 <div
-                  className="h-2 rounded-full bg-gradient-to-r from-red-600 to-red-800 transition-all"
+                  className="h-2 rounded-full bg-linear-to-r from-red-600 to-red-800 transition-all"
                   style={{
                     width: `${scan.audienceHealthScore ?? 0}%`,
                   }}

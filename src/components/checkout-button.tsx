@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "./ui/Button";
+
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -85,14 +87,13 @@ export function CheckoutButton({
 
   return (
     <div>
-      <button
+      <Button
         type="button"
         onClick={handleCheckout}
         disabled={loading}
-        className={
-          className ||
-          "w-full rounded-xl bg-red-600 hover:bg-red-500 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50 transition-all active:scale-[0.98]"
-        }
+        variant="danger"
+        className={className}
+        isLoading={loading}
       >
         {loading ? (
           <span className="flex items-center justify-center gap-2">
@@ -102,7 +103,7 @@ export function CheckoutButton({
         ) : (
           label
         )}
-      </button>
+      </Button>
       {error && <p className="mt-2 text-xs text-red-400">{error}</p>}
     </div>
   );

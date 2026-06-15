@@ -20,7 +20,7 @@ export default async function LeadsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-white tracking-tight">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-zinc-900 tracking-tight">
           <Target className="h-7 w-7 text-red-500" />
           Leads Engine
         </h1>
@@ -52,7 +52,7 @@ export default async function LeadsPage() {
                   Leads Detected
                 </span>
               </div>
-              <span className="text-4xl font-extrabold text-white">
+              <span className="text-4xl font-extrabold text-zinc-900">
                 {scan.leadCount ?? topLeads.length}
               </span>
             </div>
@@ -65,7 +65,7 @@ export default async function LeadsPage() {
                   Objections Mapped
                 </span>
               </div>
-              <span className="text-4xl font-extrabold text-white">
+              <span className="text-4xl font-extrabold text-zinc-900">
                 {objectionMap.length}
               </span>
             </div>
@@ -78,7 +78,7 @@ export default async function LeadsPage() {
                   Proof Harvested
                 </span>
               </div>
-              <span className="text-4xl font-extrabold text-white">
+              <span className="text-4xl font-extrabold text-zinc-900">
                 {scan.gradeACount ?? 0}
                 <span className="text-lg text-zinc-500 font-medium ml-1">
                   Grade A
@@ -128,7 +128,7 @@ export default async function LeadsPage() {
                         <span className="text-[10px] text-zinc-500 block">
                           Conv Prob
                         </span>
-                        <span className="text-xl font-extrabold text-white">
+                        <span className="text-xl font-extrabold text-zinc-900">
                           {(
                             Number(lead.pc || lead.conversionProb || 0) * 100
                           ).toFixed(0)}

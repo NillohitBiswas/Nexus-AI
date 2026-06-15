@@ -5,11 +5,13 @@ import { loginAction, resendVerificationEmailAction, verifyEmailAction } from ".
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/analyzer";
+  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,13 +85,13 @@ function LoginForm() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-black px-4 py-12 text-zinc-100 sm:px-6 lg:px-8">
       {/* Background gradients */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[40%] left-[20%] w-[600px] h-[600px] rounded-full bg-red-600/5 blur-[120px]" />
-        <div className="absolute -bottom-[30%] right-[10%] w-[500px] h-[500px] rounded-full bg-red-950/5 blur-[100px]" />
+        <div className="absolute top-[-40%] left-[20%] w-150 h-150 rounded-full bg-red-600/5 blur-[120px]" />
+        <div className="absolute bottom-[-30%] right-[10%] w-125 h-125 rounded-full bg-red-950/5 blur-[100px]" />
       </div>
 
       <div className="relative w-full max-w-md space-y-8 z-10">
         <div className="flex flex-col items-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-red-950 border border-red-500/30 shadow-lg shadow-red-950/20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-tr from-red-600 to-red-950 border border-red-500/30 shadow-lg shadow-red-950/20">
             <Sparkles className="h-6 w-6 text-white" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold tracking-tight text-white">
@@ -118,14 +120,13 @@ function LoginForm() {
                 Email address
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
                   disabled={isPending}
-                  className="block w-full rounded-xl border border-zinc-900 bg-black px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                   placeholder="name@example.com"
                 />
               </div>
@@ -136,31 +137,34 @@ function LoginForm() {
                 Password
               </label>
               <div className="mt-1 relative">
-                <input
+                <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
                   disabled={isPending}
-                  className="block w-full rounded-xl border border-zinc-900 bg-black px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50 pr-10"
                   placeholder="••••••••"
+                  className="pr-10"
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  variant="ghost"
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-200"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                </Button>
               </div>
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
                 disabled={isPending}
-                className="flex w-full justify-center rounded-xl bg-gradient-to-r from-red-600 to-red-800 py-3 text-sm font-semibold text-white shadow-lg hover:from-red-550 hover:to-red-750 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                variant="primary"
+                className="flex w-full justify-center rounded-xl bg-linear-to-r from-red-600 to-red-800 py-3 text-sm font-semibold text-white shadow-lg hover:from-red-550 hover:to-red-750 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 transition-all active:scale-[0.98]"
+                isLoading={isPending}
               >
                 {isPending ? (
                   <span className="flex items-center gap-2">
@@ -170,7 +174,7 @@ function LoginForm() {
                 ) : (
                   "Sign in"
                 )}
-              </button>
+              </Button>
             </div>
           </form>
 
@@ -179,46 +183,46 @@ function LoginForm() {
               Didn&apos;t get access token after sign-in? Verify email first:
             </p>
             <form className="mt-3 space-y-3" onSubmit={handleVerify}>
-              <input
+              <Input
                 name="email"
                 type="email"
                 required
                 disabled={isPending}
-                className="block w-full rounded-lg border border-zinc-900 bg-black px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 disabled:opacity-50"
                 placeholder="Email used during signup"
               />
-              <input
+              <Input
                 name="otp"
                 type="text"
                 required
                 disabled={isPending}
-                className="block w-full rounded-lg border border-zinc-900 bg-black px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 disabled:opacity-50"
                 placeholder="6-digit verification code"
               />
-              <button
+              <Button
                 type="submit"
                 disabled={isPending}
-                className="w-full rounded-lg bg-zinc-900 border border-zinc-800 py-2 text-sm font-medium text-zinc-100 hover:bg-zinc-800 disabled:opacity-50"
+                variant="secondary"
+                className="w-full rounded-lg bg-zinc-900 border border-zinc-800 py-2 text-sm font-medium text-zinc-100 hover:bg-zinc-800"
+                isLoading={isPending}
               >
                 Verify Code & Continue
-              </button>
+              </Button>
             </form>
             <form className="mt-3" onSubmit={handleResend}>
-              <input
+              <Input
                 name="email"
                 type="email"
                 required
                 disabled={isPending}
-                className="block w-full rounded-lg border border-zinc-900 bg-black px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 disabled:opacity-50"
                 placeholder="Resend verification email to..."
               />
-              <button
+              <Button
                 type="submit"
                 disabled={isPending}
+                variant="secondary"
                 className="mt-2 w-full rounded-lg border border-zinc-850 py-2 text-sm font-medium text-zinc-300 hover:bg-zinc-900 disabled:opacity-50"
               >
                 Resend Verification Email
-              </button>
+              </Button>
             </form>
           </div>
 

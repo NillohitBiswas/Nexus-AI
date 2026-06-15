@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Sparkles, LogOut, Menu, X } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { DashboardNav } from "./dashboard-nav";
 import { logoutAction } from "@/app/actions/auth";
 
@@ -22,8 +23,8 @@ export function SidebarDrawer({
     <>
       {/* Top Bar for Mobile & Tablet only */}
       <header className="lg:hidden sticky top-0 z-40 flex h-14 items-center justify-between border-b border-zinc-200 bg-white px-4 shadow-sm">
-        <Link href="/analyzer" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-red-600 to-red-800 shadow-sm">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-tr from-red-600 to-red-800 shadow-sm">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <span className="font-extrabold text-lg tracking-tight text-zinc-900">
@@ -31,13 +32,14 @@ export function SidebarDrawer({
           </span>
         </Link>
 
-        <button
+        <Button
           onClick={toggle}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 text-zinc-650 hover:bg-zinc-100 hover:text-zinc-900 active:scale-95 transition-all"
+          variant="ghost"
+          className="h-9 w-9 flex items-center justify-center"
           aria-label="Toggle Menu"
         >
           <Menu className="h-5 w-5" />
-        </button>
+        </Button>
       </header>
 
       {/* Slide-out Drawer Panel Backdrop */}
@@ -57,8 +59,8 @@ export function SidebarDrawer({
         <div className="space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <Link href="/analyzer" onClick={close} className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-red-600 to-red-800 shadow-sm">
+            <Link href="/dashboard" onClick={close} className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-tr from-red-600 to-red-800 shadow-sm">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <span className="font-extrabold text-lg tracking-tight text-zinc-900">
@@ -66,13 +68,14 @@ export function SidebarDrawer({
               </span>
             </Link>
 
-            <button
+            <Button
               onClick={close}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 transition-colors"
+              variant="ghost"
+              className="h-8 w-8 flex items-center justify-center"
               aria-label="Close menu"
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
 
           {/* User profile inside menu */}
@@ -89,13 +92,10 @@ export function SidebarDrawer({
         {/* Footer actions inside menu */}
         <div className="border-t border-zinc-150 pt-4">
           <form action={logoutHandler}>
-            <button
-              type="submit"
-              className="flex w-full items-center justify-center gap-2 text-xs font-bold text-zinc-650 hover:text-red-600 border border-zinc-200 hover:border-red-200 hover:bg-red-50 rounded-xl py-2.5 transition-all"
-            >
+            <Button type="submit" variant="ghost" className="w-full flex items-center justify-center gap-2 text-xs font-bold">
               <LogOut className="h-4 w-4" />
               Logout from Workspace
-            </button>
+            </Button>
           </form>
         </div>
       </aside>

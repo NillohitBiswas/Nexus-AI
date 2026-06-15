@@ -35,7 +35,7 @@ export const newsroomFn = inngest.createFunction(
       // Find recent scans belonging to these users
       const recentScans = await prisma.scan.findMany({
         where: {
-          video: { channel: { userId: { in: userIds } } },
+          userId: { in: userIds },
           status: "COMPLETE",
           completedAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // Last 7 days
         },

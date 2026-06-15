@@ -9,7 +9,7 @@ export default async function CompetitorDashboard() {
 
   const scans = await prisma.scan.findMany({
     where: {
-      video: { channel: { userId: user.id } },
+      userId: user.id,
       status: "COMPLETE",
     },
     include: { video: { include: { channel: true } } },
@@ -72,7 +72,7 @@ export default async function CompetitorDashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-white tracking-tight">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-zinc-900 tracking-tight">
           <Zap className="h-7 w-7 text-red-500" />
           Competitor Radar
         </h1>
@@ -88,7 +88,7 @@ export default async function CompetitorDashboard() {
           <span className="text-xs text-zinc-500 font-semibold uppercase tracking-wider block mb-2">
             Total Brands Tracked
           </span>
-          <span className="text-4xl font-extrabold text-white">
+          <span className="text-4xl font-extrabold text-zinc-900">
             {aggregated.length}
           </span>
         </div>
@@ -96,7 +96,7 @@ export default async function CompetitorDashboard() {
           <span className="text-xs text-zinc-500 font-semibold uppercase tracking-wider block mb-2">
             Total Mentions
           </span>
-          <span className="text-4xl font-extrabold text-white">
+          <span className="text-4xl font-extrabold text-zinc-900">
             {aggregated.reduce((sum, a) => sum + a.totalMentions, 0)}
           </span>
         </div>
@@ -104,7 +104,7 @@ export default async function CompetitorDashboard() {
           <span className="text-xs text-zinc-500 font-semibold uppercase tracking-wider block mb-2">
             Competitor Scans
           </span>
-          <span className="text-4xl font-extrabold text-white">
+          <span className="text-4xl font-extrabold text-zinc-900">
             {competitorScans.length}
           </span>
         </div>

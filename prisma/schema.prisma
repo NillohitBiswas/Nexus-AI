@@ -1,0 +1,262 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id              String         @id @default(uuid())
+  email           String         @unique
+  tier            String         @default("FREE") // FREE, CREATOR, GROWTH, AGENCY
+  workspaceId     String?
+  byokEnabled     Boolean        @default(false)
+  credentials     String?        // Encrypted GCP credentials for BYOK
+  apiToken        String?        @unique // For REST API authentication
+  webhookUrl      String?        // For delivering signed webhooks
+  channels        Channel[]
+  scans           Scan[]
+  responseRules   ResponseRule[]
+  subscriptions   Subscription[]
+  usageRecords    UsageRecord[]
+  apiUsageEvents  ApiUsageEvent[]
+}
+
+model Channel {
+  id                   String             @id @default(uuid())
+  userId               String?
+  user                 User?              @relation(fields: [userId], references: [id])
+  youtubeAccessToken   String?
+  youtubeRefreshToken  String?
+  name                 String
+  subCount             Int                @default(0)
+  thumbnail            String?
+  isCompetitor         Boolean            @default(false)
+  videos               Video[]
+  commenters           ChannelCommenter[]
+  termHistory          ChannelTermHistory[]
+}
+
+model Video {
+  id                String                @id @default(uuid())
+  channelId         String
+  channel           Channel               @relation(fields: [channelId], references: [id])
+  videoId           String                @unique // YouTube Video ID
+  title             String
+  url               String
+  scanCount         Int                   @default(0)
+  dominantArchetype String?
+  comments          CommentIntelligence[]
+  scans             Scan[]
+}
+
+model CommentIntelligence {
+  id                 String   @id @default(uuid())
+  videoId            String
+  video              Video    @relation(fields: [videoId], references: [id])
+  parentId           String?
+  youtubeCommentId   String   @unique
+  rawText            String
+  authorName         String
+  authorChannelId    String
+  likeCount          Int      @default(0)
+  replyCount         Int      @default(0)
+  publishedAt        DateTime
+  
+  category           String?
+  sentiment          Float?
+  intensity          Int?
+  intent             String?
+  weight             Float?
+  effectiveWeight    Float?
+  isContentGap       Boolean  @default(false)
+  
+  isGhostThread      Boolean  @default(false)
+  threadDepth        Int      @default(0)
+  
+  skillSignal        String?
+  contextSignal      String?
+  motivationSignal   String?
+  lifecycleSignal    String?
+  outcomeSignal      String?
+  
+  buyingSignal       String?
+  conversionProb     Float?
+  objectionType      String?
+  testimonialScore   Float?
+  testimonialGrade   String?
+  transitionType     String?
+  beforeStateText    String?
+  threadPattern      String?
+  confidenceScore    Float?
+  isThreadRoot       Boolean  @default(false)
+  
+  fromCache          Boolean  @default(false)
+  
+  embedding          Unsupported("vector(768)")?
+  competitorMentions CompetitorMention[]
+}
+
+model Scan {
+  id                        String              @id @default(uuid())
+  videoId                   String
+  video                     Video               @relation(fields: [videoId], references: [id])
+  userId                    String?
+  user                      User?               @relation(fields: [userId], references: [id])
+  status                    String              // RUNNING, COMPLETE, FAILED
+  progress                  Float               @default(0)
+  isCompetitorScan          Boolean             @default(false)
+  weightedSentiment         Float?
+  weightedPainIndex         Float?
+  weightedDemandVelocity    Float?
+  rawSentiment              Float?
+  rawPainIndex              Float?
+  executiveSummary          Json?
+  newsVideoIdeas            Json?
+  confidenceScore           Float?
+  completedAt               DateTime?
+  cacheHitRate              Float?
+  criticInvocations         Int                 @default(0)
+  threadEngagementScore     Float?
+  viralPotentialSignal      String?
+  superFanCount             Int                 @default(0)
+  ghostThreadCount          Int                 @default(0)
+  sentimentDeltas           Json?
+  emergencyAlert            Boolean             @default(false)
+  deltaReport               Json?
+  contentGaps               Json?
+  topContentGap             String?
+  gapScore                  Float?
+  leadCount                 Int                 @default(0)
+  topLeads                  Json?
+  competitorRadar           Json?
+  objectionMap              Json?
+  proofLibrary              Json?
+  gradeACount               Int                 @default(0)
+  gradeBCount               Int                 @default(0)
+  transformationScore       Float?
+  contentEffectivenessScore Float?
+  dominantTransition        String?
+  beforeStateVocabulary     Json?
+  thumbnailCopySuggestions  Json?
+  engagementArchetypes      Json?
+  viralHookPrediction       Json?
+  audienceHealthScore       Float?
+  skillBreakdown            Json?
+  themes                    ScanTheme[]
+  newsCorrelations          NewsCorrelation[]
+  competitorMentions        CompetitorMention[]
+}
+
+model CompetitorMention {
+  id           String              @id @default(uuid())
+  scanId       String
+  scan         Scan                @relation(fields: [scanId], references: [id])
+  commentId    String
+  comment      CommentIntelligence @relation(fields: [commentId], references: [id])
+  entity       String
+  signalType   String
+  netSentiment Float?
+  rawText      String?
+}
+
+model ScanTheme {
+  id             String  @id @default(uuid())
+  scanId         String
+  scan           Scan    @relation(fields: [scanId], references: [id])
+  themeKey       String
+  avgSentiment   Float
+  commentCount   Int
+}
+
+model ResponseRule {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  videoId      String?
+  keywords     String[]
+  intents      String[]
+  template     String
+  minIntensity Int           @default(0)
+  isActive     Boolean       @default(true)
+  logs         ResponseLog[]
+}
+
+model ResponseLog {
+  id             String        @id @default(uuid())
+  ruleId         String
+  rule           ResponseRule  @relation(fields: [ruleId], references: [id])
+  commentId      String
+  draftText      String
+  status         String        // PENDING, POSTING, POSTED, FAILED, BLOCKED_BY_GUARD, QUOTA_PAUSED
+  scheduledAt    DateTime
+  postedAt       DateTime?
+  youtubeReplyId String?
+}
+
+model Subscription {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id])
+  provider         String   // RAZORPAY, DODO
+  subscriptionId   String
+  status           String
+  currentPeriodEnd DateTime
+}
+
+model UsageRecord {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  type       String   // SCAN, APIFY, REPLY, COMPETITOR_SCAN
+  quantity   Int
+  amount     Float    @default(0)
+  reported   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model ApiUsageEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  scanId    String?
+  provider  String   // GROQ, GEMINI, YOUTUBE, APIFY, INNGEST, INSFORGE, REDIS
+  operation String
+  model     String?
+  units     Int      @default(1)
+  amount    Float    @default(0)
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([provider, createdAt])
+  @@index([userId, createdAt])
+}
+
+model ChannelCommenter {
+  id               String  @id @default(uuid())
+  channelId        String
+  channel          Channel @relation(fields: [channelId], references: [id])
+  authorChannelId  String
+  isSuperFan       Boolean @default(false)
+  sentimentHistory Float[]
+}
+
+model ChannelTermHistory {
+  id         String   @id @default(uuid())
+  channelId  String
+  channel    Channel  @relation(fields: [channelId], references: [id])
+  term       String
+  count      Int
+  recordedAt DateTime @default(now())
+}
+
+model NewsCorrelation {
+  id         String   @id @default(uuid())
+  scanId     String
+  scan       Scan     @relation(fields: [scanId], references: [id])
+  headline   String
+  themeLabel String
+  score      Float
+  embedding  Unsupported("vector(768)")?
+}

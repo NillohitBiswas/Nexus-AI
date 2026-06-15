@@ -59,12 +59,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Scan not found" }, { status: 404 });
     }
 
-    if (scan.video.channel.userId !== user.id) {
+    if (scan.userId !== user.id && scan.video.channel.userId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const repaired = (await repairStuckScan(scanId)) ?? scan;
-    return NextResponse.json(repaired);
+    await repairStuckScan(scanId);
+    const refreshedScan = await prisma.scan.findUnique({
+      where: { id: scanId },
+      include: {
+        video: {
+          include: {
+            channel: true,
+            comments: {
+              orderBy: { publishedAt: "desc" },
+            },
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(refreshedScan);
   } catch (err: any) {
     console.error("GET analyze route error:", err);
     return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
@@ -140,21 +154,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Check if channel exists, if not create a default one
+    // Check if channel exists in the database already
     let dbChannel = await prisma.channel.findFirst({
-      where: {
-        OR: [
-          { id: channelId },
-          { userId: user.id }, // Connect to user's connected channel if any
-        ],
-      },
+      where: { id: channelId },
     });
 
     if (!dbChannel) {
+      // Create channel record without userId — it's just a reference, not a "connection"
       dbChannel = await prisma.channel.create({
         data: {
           id: channelId,
-          userId: user.id,
           name: channelName,
           subCount: 0,
           thumbnail: channelThumbnail,
@@ -183,10 +192,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Create Scan record
+    // Create Scan record — attributed to the user who initiated it
     const scan = await prisma.scan.create({
       data: {
         videoId: dbVideo.id,
+        userId: user.id,
         status: "PENDING",
         progress: 0.0,
         isCompetitorScan: Boolean(isCompetitorScan),

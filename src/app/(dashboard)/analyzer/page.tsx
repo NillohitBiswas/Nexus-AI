@@ -29,6 +29,9 @@ import {
   Zap
 } from "lucide-react";
 
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
+
 // Inline Youtube Icon to bypass package version differences
 const Youtube = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -138,10 +141,15 @@ export default function AnalyzerPage() {
       return;
     }
 
-    const savedId =
+    const queryId = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("scanId")
+      : null;
+
+    const savedId = queryId || (
       typeof window !== "undefined"
         ? sessionStorage.getItem("nexus_activeScanId")
-        : null;
+        : null
+    );
     if (savedId && scans.some((s) => s.id === savedId)) {
       void handleLoadPastScan(savedId);
       return;
@@ -337,9 +345,9 @@ export default function AnalyzerPage() {
 
   // Filtered comments if we have any loaded inside activeScan.video.comments
   const comments = activeScan?.video?.comments || [];
-  const filteredComments = commentFilter === "ALL" 
-    ? comments 
-    : comments.filter((c: any) => c.category === commentFilter);
+  const filteredComments = commentFilter === "ALL"
+    ? comments
+    : comments.filter((c: any) => String(c.category || "").toUpperCase() === commentFilter);
 
   return (
     <div className="min-h-screen text-zinc-900">
@@ -396,13 +404,14 @@ export default function AnalyzerPage() {
                   <p className="text-xs font-semibold text-amber-700">Not Connected</p>
                 </div>
                 <p className="text-xs text-zinc-500 mb-4">Link your YouTube channel to start scanning audience signals.</p>
-                <button
+                <Button
                   onClick={handleConnectYoutube}
                   className="flex items-center justify-center gap-2 w-full rounded-xl bg-red-600 hover:bg-red-500 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors active:scale-[0.98]"
+                  variant="primary"
                 >
                   <Youtube className="h-4 w-4" />
                   Connect YouTube
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -426,7 +435,7 @@ export default function AnalyzerPage() {
                 ))}
                 <button
                   onClick={handleConnectYoutube}
-                  className="text-xs text-red-600 hover:text-red-500 font-semibold block text-center w-full py-1.5 border border-red-100 hover:border-red-200 rounded-xl transition-colors"
+                  className="text-xs text-red-600 hover:text-red-500 font-semibold block text-center w-full py-1.5 border border-red-100 hover:border-red-200 rounded-xl transition-colors outline-none"
                 >
                   Reconnect Channel
                 </button>
@@ -440,22 +449,22 @@ export default function AnalyzerPage() {
             {scans.length === 0 ? (
               <p className="text-sm text-zinc-500 text-center py-4">No scans ran yet.</p>
             ) : (
-              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              <div className="space-y-2 max-h-75 overflow-y-auto overflow-x-hidden pr-1">
                 {scans.map((sc) => (
                   <button
                     key={sc.id}
                     onClick={() => handleLoadPastScan(sc.id)}
-                    className={`w-full text-left p-3 rounded-xl border transition-all text-xs flex flex-col gap-1 ${
+                    className={`w-full overflow-hidden text-left p-3 rounded-xl border transition-all text-xs flex flex-col gap-1 justify-start outline-none ${
                       activeScan?.id === sc.id
-                        ? "border-red-500/50 bg-red-50"
+                        ? "border-red-500 bg-red-50/50 text-red-650"
                         : sc.status === "FAILED"
-                          ? "border-red-100 bg-red-900/5 hover:border-red-500/40"
-                          : "border-zinc-200 hover:border-zinc-200 bg-zinc-50"
+                          ? "border-red-100 bg-red-500/5 text-red-700 hover:bg-red-500/10 hover:border-red-200"
+                          : "border-zinc-200 hover:border-zinc-300 hover:bg-zinc-50 bg-zinc-50/50 text-zinc-700"
                     }`}
                   >
-                    <span className="font-semibold text-zinc-800 truncate block">{sc.video?.title || "Scan results"}</span>
+                    <span className="font-semibold text-zinc-800 truncate block w-full">{sc.video?.title || "Scan results"}</span>
                     <div className="flex justify-between items-center text-[10px] text-zinc-500 w-full">
-                      <span className={sc.status === "FAILED" ? "text-red-400" : ""}>Status: {sc.status}</span>
+                      <span className={sc.status === "FAILED" ? "text-red-500" : ""}>Status: {sc.status}</span>
                       <span>{sc.completedAt ? new Date(sc.completedAt).toLocaleDateString() : ""}</span>
                     </div>
                   </button>
@@ -470,7 +479,7 @@ export default function AnalyzerPage() {
           
           {/* Scanning Input Box */}
           <div className="rounded-2xl border border-zinc-200 bg-white p-6 backdrop-blur-md shadow-2xl relative overflow-hidden">
-            <div className="absolute -top-[50%] right-[10%] w-[300px] h-[300px] rounded-full bg-red-600/5 blur-[80px]" />
+            <div className="absolute top-[-50%] right-[10%] w-75 h-75 rounded-full bg-red-600/5 blur-[80px]" />
             <h2 className="text-lg font-bold text-zinc-900 mb-2 flex items-center gap-2">
               <Activity className="h-5 w-5 text-red-500" />
               Scan Video Audience Signals
@@ -490,7 +499,7 @@ export default function AnalyzerPage() {
             </label>
 
             <form onSubmit={handleStartScan} className="flex flex-col sm:flex-row gap-3">
-              <input
+              <Input
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
@@ -498,18 +507,16 @@ export default function AnalyzerPage() {
                 disabled={scanLoading}
                 className="flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 placeholder-zinc-500 outline-none transition-all focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50"
               />
-              <button
+              <Button
                 type="submit"
                 disabled={scanLoading || !urlInput}
-                className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-red-600/10 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                variant="primary"
+                className="flex items-center justify-center gap-2 px-6 py-3"
+                isLoading={scanLoading}
               >
-                {scanLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Play className="h-4 w-4 fill-current" />
-                )}
+                {!scanLoading && <Play className="h-4 w-4 fill-current" />}
                 <span>Analyze Video</span>
-              </button>
+              </Button>
             </form>
 
             {scanError && (
@@ -534,7 +541,7 @@ export default function AnalyzerPage() {
               {/* Fake Progress Bar */}
               <div className="w-full max-w-md mx-auto bg-zinc-50 rounded-full h-2 overflow-hidden border border-zinc-200">
                 <div 
-                  className="bg-gradient-to-r from-red-600 to-red-800 h-2 rounded-full transition-all duration-500" 
+                  className="bg-linear-to-r from-red-600 to-red-800 h-2 rounded-full transition-all duration-500" 
                   style={{ width: `${(activeScan?.progress || 0) * 100}%` }}
                 />
               </div>
@@ -555,21 +562,22 @@ export default function AnalyzerPage() {
                   Listed in Scan History and already counted toward your monthly limit.
                 </p>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => handleRetryScan(activeScan.id)}
                 disabled={isPending || scanLoading}
-                className="rounded-xl bg-red-600/80 hover:bg-red-500 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                variant="danger"
+                className="rounded-xl px-4 py-2.5 text-sm font-semibold"
               >
                 Retry this scan
-              </button>
+              </Button>
             </div>
           )}          {activeScan && activeScan.status === "COMPLETE" && (
             <div className="space-y-8 animate-in fade-in duration-500">
               
               {/* Emergency Alert Banner */}
               {activeScan.emergencyAlert && (
-                <div className="rounded-2xl border border-red-200 bg-gradient-to-r from-red-950/60 to-black p-5 relative overflow-hidden animate-pulse">
+                <div className="rounded-2xl border border-red-200 bg-linear-to-r from-red-950/60 to-black p-5 relative overflow-hidden animate-pulse">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-red-650/10 rounded-full blur-xl pointer-events-none" />
                   <div className="flex items-start gap-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-600/20 text-red-500 border border-red-150">
@@ -592,7 +600,7 @@ export default function AnalyzerPage() {
 
               {/* Scan Info Header */}
               <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 p-5 rounded-2xl border border-zinc-200 bg-white relative overflow-hidden">
-                <div className="absolute -top-[50%] left-[20%] w-[200px] h-[200px] rounded-full bg-red-600/5 blur-[50px] pointer-events-none" />
+                <div className="absolute top-[-50%] left-[20%] w-50 h-50 rounded-full bg-red-600/5 blur-[50px] pointer-events-none" />
                 <div>
                   <span className="text-[10px] text-red-500 font-bold tracking-widest uppercase block mb-1">Active Scan Results</span>
                   <h2 className="text-xl font-bold text-zinc-900">{activeScan.video?.title || "Video scan"}</h2>
@@ -614,7 +622,7 @@ export default function AnalyzerPage() {
                   {/* PDF Download Button */}
                   <button
                     onClick={() => window.open(`/api/analyze/pdf?scanId=${activeScan.id}`, "_blank")}
-                    className="flex items-center gap-1.5 text-zinc-700 hover:text-white transition-all text-xs font-semibold border border-zinc-200 bg-zinc-50 hover:bg-zinc-900 rounded-xl px-4 py-2 hover:border-zinc-200"
+                    className="flex items-center gap-1.5 text-zinc-700 hover:text-white transition-all text-xs font-semibold border border-zinc-200 bg-zinc-50 hover:bg-zinc-900 rounded-xl px-4 py-2 outline-none"
                     title="Download PDF report for clients"
                   >
                     <Download className="h-4 w-4" />
@@ -644,10 +652,10 @@ export default function AnalyzerPage() {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border outline-none ${
                         active
-                          ? "bg-red-50 text-red-500 border-red-150 shadow-sm shadow-red-950/30"
-                          : "text-zinc-500 border-transparent hover:text-zinc-800 hover:bg-zinc-100"
+                          ? "bg-red-600 text-white border-red-600 shadow-sm"
+                          : "text-zinc-600 border-transparent hover:text-zinc-900 hover:bg-zinc-100"
                       }`}
                     >
                       <Icon className="h-4 w-4" />
@@ -950,12 +958,13 @@ export default function AnalyzerPage() {
                             <Zap className="h-3.5 w-3.5 fill-current" />
                             Drafting AI Reply Recommendation
                           </span>
-                          <button 
+                          <Button
                             onClick={() => setDraftingCommentId(null)}
+                            variant="ghost"
                             className="text-xs text-zinc-500 hover:text-white"
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                         <textarea
                           value={replyDraftText}
@@ -963,9 +972,10 @@ export default function AnalyzerPage() {
                           className="w-full text-xs text-zinc-800 bg-zinc-100 rounded-lg border border-zinc-200 p-2.5 focus:border-red-500 outline-none h-20 resize-y"
                         />
                         <div className="flex justify-end gap-2">
-                          <button
+                          <Button
                             onClick={() => handleCopyText(replyDraftText, draftingCommentId)}
-                            className="flex items-center gap-1 text-[11px] font-bold text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg"
+                            variant="danger"
+                            className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg"
                           >
                             {copiedId === draftingCommentId ? (
                               <>
@@ -978,7 +988,7 @@ export default function AnalyzerPage() {
                                 <span>Copy Draft to Clipboard</span>
                               </>
                             )}
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -1011,12 +1021,13 @@ export default function AnalyzerPage() {
                               </div>
                               <div className="flex sm:flex-col items-center sm:items-end justify-between shrink-0 gap-2">
                                 <span className="text-xs text-zinc-500">Conv Prob: <strong>{(Number(lead.conversionProb || lead.pc) * 100).toFixed(0)}%</strong></span>
-                                <button
+                                <Button
                                   onClick={() => handleDraftReply({ id: lead.commentId || idx.toString(), authorName: lead.authorName, rawText: lead.rawText, category: "FEATURE" })}
-                                  className="text-[10px] font-bold text-white border border-zinc-200 hover:border-red-200 bg-zinc-50 hover:bg-red-50/50 px-2.5 py-1 rounded"
+                                  variant="ghost"
+                                  className="text-[10px] font-bold border border-zinc-200 hover:border-red-200 bg-zinc-50 hover:bg-red-50/50 px-2.5 py-1 rounded"
                                 >
                                   Draft Reply
-                                </button>
+                                </Button>
                               </div>
                             </div>
                           ))}
@@ -1244,9 +1255,10 @@ export default function AnalyzerPage() {
                     {/* Filters */}
                     <div className="flex flex-wrap gap-2">
                       {["ALL", "BUG", "FEATURE", "COMPLAINT", "QUESTION", "PRAISE"].map((f) => (
-                        <button
+                        <Button
                           key={f}
                           onClick={() => setCommentFilter(f)}
+                          variant="ghost"
                           className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
                             commentFilter === f
                               ? "border-red-500 bg-red-50 text-red-500"
@@ -1254,7 +1266,7 @@ export default function AnalyzerPage() {
                           }`}
                         >
                           {f}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -1267,12 +1279,13 @@ export default function AnalyzerPage() {
                           <Zap className="h-3.5 w-3.5 fill-current" />
                           Drafting AI Reply Recommendation
                         </span>
-                        <button 
+                        <Button
                           onClick={() => setDraftingCommentId(null)}
+                          variant="ghost"
                           className="text-xs text-zinc-500 hover:text-white"
                         >
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                       <textarea
                         value={replyDraftText}
@@ -1280,9 +1293,10 @@ export default function AnalyzerPage() {
                         className="w-full text-xs text-zinc-800 bg-zinc-100 rounded-lg border border-zinc-200 p-2.5 focus:border-red-500 outline-none h-20 resize-y"
                       />
                       <div className="flex justify-end gap-2">
-                        <button
+                        <Button
                           onClick={() => handleCopyText(replyDraftText, draftingCommentId)}
-                          className="flex items-center gap-1 text-[11px] font-bold text-white bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded-lg"
+                          variant="danger"
+                          className="flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 rounded-lg"
                         >
                           {copiedId === draftingCommentId ? (
                             <>
@@ -1295,12 +1309,12 @@ export default function AnalyzerPage() {
                               <span>Copy Draft to Clipboard</span>
                             </>
                           )}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   )}
 
-                  <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+                  <div className="space-y-3 max-h-100 overflow-y-auto pr-2">
                     {filteredComments.length === 0 ? (
                       <p className="text-center py-6 text-sm text-zinc-500">No comments match the selected category.</p>
                     ) : (
@@ -1329,16 +1343,17 @@ export default function AnalyzerPage() {
                                   Cached
                                 </span>
                               )}
-                              <button
+                              <Button
                                 onClick={() => handleDraftReply(c)}
+                                variant="ghost"
                                 className="text-[9px] font-bold text-zinc-500 hover:text-white border border-zinc-200 hover:border-zinc-200 bg-zinc-50 px-1.5 py-0.5 rounded"
                               >
                                 Draft Reply
-                              </button>
+                              </Button>
                             </div>
                           </div>
                           
-                          <p className="text-sm text-zinc-600 leading-relaxed">{c.rawText}</p>
+                          <p className="text-sm text-zinc-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: c.rawText }} />
                           
                           {c.intent && (
                             <div className="text-[11px] text-zinc-500 flex gap-1">

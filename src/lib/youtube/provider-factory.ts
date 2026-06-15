@@ -27,9 +27,9 @@ export class StandardYouTubeProvider {
     console.log(`Fetching comments via Standard YouTube API for video: ${videoId}`);
     const comments: YouTubeComment[] = [];
     
-    // Check if we have credentials; if not, generate mock comments for debugging
-    const hasCredentials = credentials.token || credentials.apiKey;
-    if (!hasCredentials || credentials.token?.includes("<PLACEHOLDER") || credentials.apiKey?.includes("<PLACEHOLDER")) {
+    const validApiKey = credentials.apiKey && !credentials.apiKey.includes("<PLACEHOLDER");
+    const validToken = credentials.token && !credentials.token.includes("<PLACEHOLDER");
+    if (!validApiKey && !validToken) {
       console.warn("No valid YouTube credentials found. Generating mock comments for testing.");
       return generateMockComments(videoId, limit);
     }
@@ -40,7 +40,7 @@ export class StandardYouTubeProvider {
 
       while (fetchedCount < limit) {
         const maxResults = Math.min(100, limit - fetchedCount);
-        let url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId=${videoId}&maxResults=${maxResults}`;
+        let url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet,replies&videoId=${videoId}&maxResults=${maxResults}&textFormat=plainText`;
         
         if (nextPageToken) {
           url += `&pageToken=${nextPageToken}`;
@@ -71,7 +71,7 @@ export class StandardYouTubeProvider {
           const commentId = item.snippet.topLevelComment.id;
           comments.push({
             youtubeCommentId: commentId,
-            rawText: topComment.textDisplay || topComment.textOriginal || "",
+            rawText: topComment.textOriginal || topComment.textDisplay || "",
             authorName: topComment.authorDisplayName || "Anonymous",
             authorChannelId: topComment.authorChannelId?.value || "",
             likeCount: topComment.likeCount || 0,
@@ -88,7 +88,7 @@ export class StandardYouTubeProvider {
             
             comments.push({
               youtubeCommentId: reply.id,
-              rawText: replySnippet.textDisplay || replySnippet.textOriginal || "",
+              rawText: replySnippet.textOriginal || replySnippet.textDisplay || "",
               authorName: replySnippet.authorDisplayName || "Anonymous",
               authorChannelId: replySnippet.authorChannelId?.value || "",
               likeCount: replySnippet.likeCount || 0,

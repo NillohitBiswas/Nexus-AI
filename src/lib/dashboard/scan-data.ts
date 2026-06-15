@@ -6,7 +6,7 @@ export async function getLatestScansForUser(userId: string, limit = 5) {
 
   return prisma.scan.findMany({
     where: {
-      video: { channel: { userId } },
+      userId,
       status: "COMPLETE",
     },
     include: {

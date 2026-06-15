@@ -19,7 +19,7 @@ export default async function ProofLibraryPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-white tracking-tight">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-zinc-900 tracking-tight">
           <Star className="h-7 w-7 text-red-500" />
           Proof Library
         </h1>
@@ -66,7 +66,7 @@ export default async function ProofLibraryPage() {
                   Grade B Testimonials
                 </span>
               </div>
-              <span className="text-4xl font-extrabold text-white">
+              <span className="text-4xl font-extrabold text-zinc-900">
                 {gradeBCount}
               </span>
               <p className="text-[10px] text-zinc-500 mt-1">
@@ -81,7 +81,7 @@ export default async function ProofLibraryPage() {
                   Total Harvested
                 </span>
               </div>
-              <span className="text-4xl font-extrabold text-white">
+              <span className="text-4xl font-extrabold text-zinc-900">
                 {proofLibrary.length}
               </span>
               <p className="text-[10px] text-zinc-500 mt-1">

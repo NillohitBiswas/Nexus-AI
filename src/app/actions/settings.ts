@@ -14,8 +14,7 @@ export async function saveBYOKCredentials(formData: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user) throw new Error("Unauthorized");
 
-  // Double check tier
-  if (user.tier !== "AGENCY") throw new Error("BYOK is only available for AGENCY tier users.");
+  // Tier check removed to allow BYOK for all tiers
 
   const youtubeApiKey = formData.get("youtubeApiKey")?.toString().trim() || "";
   if (!youtubeApiKey) throw new Error("YouTube API Key is required.");
@@ -106,47 +105,16 @@ export async function disconnectChannel(channelId: string): Promise<void> {
   }
 
   try {
-    const videos = await prisma.video.findMany({
-      where: { channelId: channel.id },
-      select: { id: true },
+    // Soft disconnect: unlink the channel from the user and clear OAuth tokens.
+    // All videos, scans, and analyzed data are preserved.
+    await prisma.channel.update({
+      where: { id: channel.id },
+      data: {
+        userId: null,
+        youtubeAccessToken: null,
+        youtubeRefreshToken: null,
+      },
     });
-    const videoIds = videos.map((v) => v.id);
-
-    const scans = await prisma.scan.findMany({
-      where: { videoId: { in: videoIds } },
-      select: { id: true },
-    });
-    const scanIds = scans.map((s) => s.id);
-
-    await prisma.$transaction([
-      prisma.competitorMention.deleteMany({
-        where: { scanId: { in: scanIds } },
-      }),
-      prisma.scanTheme.deleteMany({
-        where: { scanId: { in: scanIds } },
-      }),
-      prisma.newsCorrelation.deleteMany({
-        where: { scanId: { in: scanIds } },
-      }),
-      prisma.scan.deleteMany({
-        where: { videoId: { in: videoIds } },
-      }),
-      prisma.commentIntelligence.deleteMany({
-        where: { videoId: { in: videoIds } },
-      }),
-      prisma.video.deleteMany({
-        where: { channelId: channel.id },
-      }),
-      prisma.channelCommenter.deleteMany({
-        where: { channelId: channel.id },
-      }),
-      prisma.channelTermHistory.deleteMany({
-        where: { channelId: channel.id },
-      }),
-      prisma.channel.delete({
-        where: { id: channel.id },
-      }),
-    ]);
 
     revalidatePath("/settings");
     revalidatePath("/analyzer");

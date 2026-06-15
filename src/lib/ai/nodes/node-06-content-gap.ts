@@ -59,7 +59,8 @@ export async function runContentGapExtractor(videoId: string) {
     if (isGap) {
       gapCount++;
       gapIntensitySum += c.intensity || 0;
-      const topic = (c.intent || c.rawText.slice(0, 60)).slice(0, 80);
+      const rawTrimmed = c.rawText.trim().replace(/\n/g, " ");
+      const topic = rawTrimmed.length > 80 ? rawTrimmed.slice(0, 77) + "..." : rawTrimmed;
       const existing = gapTopics.find((g) => g.topic === topic);
       if (existing) existing.count++;
       else gapTopics.push({ topic, count: 1 });

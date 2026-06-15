@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { disconnectChannel } from "@/app/actions/settings";
 import { Users, Wifi, WifiOff, Loader2, Trash2 } from "lucide-react";
 
@@ -36,7 +37,7 @@ export function ChannelManager({
   const slotsLeft = maxLimit === Infinity ? Infinity : maxLimit - channelsConnected;
 
   const handleDisconnect = async (channelId: string) => {
-    if (!confirm("Are you sure you want to disconnect this channel? This will delete all analyzed videos and scans under this channel.")) {
+    if (!confirm("Are you sure you want to disconnect this channel? Your analyzed data and scan history will be preserved.")) {
       return;
     }
 
@@ -126,10 +127,11 @@ export function ChannelManager({
                 >
                   Reconnect
                 </a>
-                <button
+                <Button
                   onClick={() => handleDisconnect(chan.id)}
                   disabled={isPending}
-                  className="flex items-center justify-center h-8 w-8 text-zinc-550 hover:text-red-600 hover:bg-red-50 border border-zinc-200 hover:border-red-200 rounded-lg transition-all disabled:opacity-50"
+                  variant="ghost"
+                  className="h-8 w-8 flex items-center justify-center"
                   title="Disconnect Channel"
                 >
                   {deletingId === chan.id ? (
@@ -137,7 +139,7 @@ export function ChannelManager({
                   ) : (
                     <Trash2 className="h-4 w-4" />
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           ))}

@@ -2,6 +2,8 @@ import { inngest } from "./client";
 import { prisma } from "@/lib/db";
 import {
   YouTubeProviderFactory,
+  StandardYouTubeProvider,
+  ApifyProvider,
   type YouTubeComment,
 } from "@/lib/youtube/provider-factory";
 import { runCritiqueLoop } from "@/lib/ai/nodes/node-04-critique-loop";
@@ -82,65 +84,88 @@ export const analyzeVideoFn = inngest.createFunction(
         // Quota limits based on tier
         const user = await prisma.user.findUnique({ where: { id: userId } });
         const tier = user?.tier || "FREE";
+        // Resolve API key: prefer per-user BYOK credentials, fall back to env
+        let resolvedApiKey: string | undefined = process.env.YOUTUBE_API_KEY || undefined;
+        try {
+          if (user?.byokEnabled && user.credentials) {
+            const creds = decrypt(user.credentials);
+            const parsed = JSON.parse(creds || "{}");
+            if (parsed?.youtubeApiKey) resolvedApiKey = parsed.youtubeApiKey;
+          }
+        } catch (e) {
+          console.error("Failed to resolve BYOK credentials:", e);
+        }
         let limit = 100; // Free limit
         if (tier === "CREATOR") limit = 500;
         if (tier === "GROWTH") limit = 2000;
         if (tier === "AGENCY") limit = 5000;
 
-        const provider = YouTubeProviderFactory.getProvider(isCompetitor, limit);
-        
-        // Pass credentials
-        let resolvedApiKey = process.env.YOUTUBE_API_KEY;
-        
-        // Handle BYOK logic
-        if (user?.byokEnabled && user?.credentials) {
-          try {
-            const decrypted = decrypt(user.credentials);
-            const payload = JSON.parse(decrypted);
-            if (payload.youtubeApiKey) {
-              resolvedApiKey = payload.youtubeApiKey;
-            }
-          } catch (e) {
-            console.error("Failed to decrypt BYOK credentials", e);
-          }
-        }
-
+        const validApiKey = resolvedApiKey && !resolvedApiKey.includes("<PLACEHOLDER");
+        const validToken = token && !token.includes("<PLACEHOLDER");
         const credentials = {
-          token: token || undefined,
-          apiKey: resolvedApiKey || undefined,
+          token: validToken ? token : undefined,
+          apiKey: validApiKey ? resolvedApiKey : undefined,
         };
 
         const apifyToken = process.env.APIFY_API_TOKEN || "";
+        const validApifyToken = apifyToken && !apifyToken.includes("<PLACEHOLDER");
+
+        const useApify = (isCompetitor || limit > 500) && validApifyToken;
+        const provider = useApify ? new ApifyProvider() : new StandardYouTubeProvider();
 
         let result: YouTubeComment[];
 
-        if (isCompetitor || limit > 500) {
-          result = await (
-            provider as {
-              fetchComments: (v: string, t: string, l: number) => Promise<YouTubeComment[]>;
-            }
-          ).fetchComments(video.videoId, apifyToken, limit);
-          trackApifyRun({
-            userId,
-            scanId,
-            commentCount: result.length,
-          });
+        if (provider instanceof ApifyProvider) {
+          if (validApifyToken) {
+            result = await provider.fetchComments(video.videoId, apifyToken, limit);
+            trackApifyRun({
+              userId,
+              scanId,
+              commentCount: result.length,
+            });
+          } else if (credentials.apiKey || credentials.token) {
+            const fallback = new StandardYouTubeProvider();
+            result = await fallback.fetchComments(video.videoId, credentials, limit);
+            trackYoutubeCall({
+              userId,
+              scanId,
+              operation: "commentThreads.list",
+              commentCount: result.length,
+            });
+          } else {
+            result = await provider.fetchComments(video.videoId, apifyToken, limit);
+            trackApifyRun({
+              userId,
+              scanId,
+              commentCount: result.length,
+            });
+          }
         } else {
-          result = await (
-            provider as {
-              fetchComments: (
-                v: string,
-                c: { token?: string; apiKey?: string },
-                l: number,
-              ) => Promise<YouTubeComment[]>;
-            }
-          ).fetchComments(video.videoId, credentials, limit);
-          trackYoutubeCall({
-            userId,
-            scanId,
-            operation: "commentThreads.list",
-            commentCount: result.length,
-          });
+          if (credentials.apiKey || credentials.token) {
+            result = await provider.fetchComments(video.videoId, credentials, limit);
+            trackYoutubeCall({
+              userId,
+              scanId,
+              operation: "commentThreads.list",
+              commentCount: result.length,
+            });
+          } else if (validApifyToken) {
+            const fallback = new ApifyProvider();
+            result = await fallback.fetchComments(video.videoId, apifyToken, limit);
+            trackApifyRun({
+              userId,
+              scanId,
+              commentCount: result.length,
+            });
+          } else {
+            result = await provider.fetchComments(video.videoId, credentials, limit);
+            trackYoutubeCall({
+              userId,
+              scanId,
+              operation: "commentThreads.list",
+              commentCount: result.length,
+            });
+          }
         }
 
         trackInngestStep({

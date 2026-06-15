@@ -5,14 +5,10 @@ import { canUseDevTierSwitcher, isDevAdmin } from "@/lib/dev-tools";
 import {
   KeyRound,
   ShieldCheck,
-  AlertCircle,
   Webhook,
   CreditCard,
   Settings2,
-  Wifi,
-  WifiOff,
   BarChart3,
-  Users,
   ArrowUpRight,
   CheckCircle2,
 } from "lucide-react";
@@ -21,6 +17,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { RotateApiTokenButton } from "@/components/rotate-api-token";
 import { DevTierSwitcher } from "@/components/dev-tier-switcher";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 // Inline Youtube icon (lucide-react doesn't export it)
 const YoutubeIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -81,7 +79,7 @@ export default async function SettingsPage() {
 
   if (!user) redirect("/login");
 
-  const isAgency  = user.tier === "AGENCY";
+  const isAgency  = user.tier === "AGENCY"; // Still used for Developer Tools section
   const sub       = user.subscriptions[0];
   const tier      = await getUserTier(user.id);
   const limits    = getLimits(tier);
@@ -251,7 +249,7 @@ export default async function SettingsPage() {
                 <div>
                   <label className="text-sm font-semibold text-zinc-800 block mb-1">Outbound Webhook URL</label>
                   <p className="text-xs text-zinc-500 mb-2">Nexus will POST scan results to this endpoint.</p>
-                  <input
+                  <Input
                     name="webhookUrl"
                     type="url"
                     defaultValue={user.webhookUrl ?? ""}
@@ -259,12 +257,9 @@ export default async function SettingsPage() {
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-sm font-semibold text-white transition-all"
-                >
+                <Button type="submit" variant="primary" className="px-4 py-2 rounded-xl w-max">
                   Save Webhook
-                </button>
+                </Button>
               </form>
             </div>
           </div>
@@ -287,43 +282,31 @@ export default async function SettingsPage() {
           }
         />
         <div className="p-6">
-          {!isAgency ? (
-            <div className="flex gap-3 items-start p-4 bg-amber-50 border border-amber-200 rounded-xl">
-              <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-semibold text-amber-800">Agency plan required</p>
-                <p className="text-xs text-amber-700 mt-1">
-                  BYOK lets you plug in your own YouTube Data API v3 key for unlimited quota.{" "}
-                  <Link href="/pricing" className="font-bold underline hover:text-amber-900">Upgrade to Agency →</Link>
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p className="text-xs text-zinc-500">Supply your YouTube Data API v3 key. Nexus will use it instead of the shared pool, giving you full quota control.</p>
-              <form action={saveBYOKCredentials} className="flex gap-3">
-                <input
-                  type="password"
-                  name="youtubeApiKey"
-                  placeholder="AIza... (YouTube Data API v3 key)"
-                  className="flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
-                />
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-semibold transition-all shadow-sm active:scale-[0.98]"
-                >
-                  {user.byokEnabled ? "Update" : "Enable"}
-                </button>
+          <div className="space-y-4">
+            <p className="text-xs text-zinc-500">Supply your YouTube Data API v3 key. Nexus will use it instead of the shared pool, giving you full quota control.</p>
+            <form action={saveBYOKCredentials} className="flex gap-3">
+              <Input
+                type="password"
+                name="youtubeApiKey"
+                placeholder="AIza... (YouTube Data API v3 key)"
+                className="flex-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                className="px-5 py-2.5 rounded-xl"
+              >
+                {user.byokEnabled ? "Update" : "Enable"}
+              </Button>
+            </form>
+            {user.byokEnabled && (
+              <form action={disableBYOK}>
+                <Button type="submit" variant="ghost" className="text-xs text-red-500 hover:text-red-600 font-semibold hover:underline flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Remove key and revert to shared pool
+                </Button>
               </form>
-              {user.byokEnabled && (
-                <form action={disableBYOK}>
-                  <button type="submit" className="text-xs text-red-500 hover:text-red-600 font-semibold hover:underline flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5" /> Remove key and revert to shared pool
-                  </button>
-                </form>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </Section>
 

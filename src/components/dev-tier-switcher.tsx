@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "./ui/Button";
+
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setDevTierAction } from "@/app/actions/dev-tier";
@@ -48,14 +50,15 @@ export function DevTierSwitcher({ currentTier }: { currentTier: string }) {
             </option>
           ))}
         </select>
-        <button
+        <Button
           type="button"
           onClick={apply}
           disabled={pending || tier === currentTier}
-          className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-semibold disabled:opacity-50"
+          variant="secondary"
+          className="px-4 py-2.5 rounded-xl"
         >
           {pending ? "Applying…" : "Apply tier"}
-        </button>
+        </Button>
       </div>
       {error && <p className="text-sm text-red-400">{error}</p>}
     </section>

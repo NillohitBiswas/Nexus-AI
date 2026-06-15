@@ -16,7 +16,7 @@ export default async function ObjectionsPage() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-white tracking-tight">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-zinc-900 tracking-tight">
           <ShieldAlert className="h-7 w-7 text-red-500" />
           Objection Intelligence
         </h1>

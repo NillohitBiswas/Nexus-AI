@@ -5,6 +5,8 @@ import { signupAction } from "../actions/auth";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -36,7 +38,7 @@ export default function SignupPage() {
         if (result?.message) {
           setSuccessMessage(result.message);
         } else {
-          router.push("/analyzer");
+          router.push("/dashboard");
           router.refresh();
         }
       }
@@ -47,13 +49,13 @@ export default function SignupPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-black px-4 py-12 text-zinc-100 sm:px-6 lg:px-8">
       {/* Background gradients */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-[40%] left-[20%] w-[600px] h-[600px] rounded-full bg-red-600/5 blur-[120px]" />
-        <div className="absolute -bottom-[30%] right-[10%] w-[500px] h-[500px] rounded-full bg-red-955/5 blur-[100px]" />
+        <div className="absolute top-[-40%] left-[20%] w-150 h-150 rounded-full bg-red-600/5 blur-[120px]" />
+        <div className="absolute bottom-[-30%] right-[10%] w-125 h-125 rounded-full bg-red-950/5 blur-[100px]" />
       </div>
 
       <div className="relative w-full max-w-md space-y-8 z-10">
         <div className="flex flex-col items-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-red-600 to-red-950 border border-red-500/30 shadow-lg shadow-red-950/20">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-tr from-red-600 to-red-950 border border-red-500/30 shadow-lg shadow-red-950/20">
             <Sparkles className="h-6 w-6 text-white" />
           </div>
           <h2 className="mt-6 text-center text-3xl font-extrabold tracking-tight text-white">
@@ -64,7 +66,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-zinc-905 bg-zinc-950/40 p-8 shadow-2xl backdrop-blur-xl">
+        <div className="mt-8 rounded-2xl border border-zinc-900 bg-zinc-950/40 p-8 shadow-2xl backdrop-blur-xl">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
               <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
@@ -83,12 +85,11 @@ export default function SignupPage() {
                 Full Name (Optional)
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="name"
                   name="name"
                   type="text"
                   disabled={isPending}
-                  className="block w-full rounded-xl border border-zinc-900 bg-black px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                   placeholder="John Doe"
                 />
               </div>
@@ -99,14 +100,13 @@ export default function SignupPage() {
                 Email address
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="email"
                   name="email"
                   type="email"
                   autoComplete="email"
                   required
                   disabled={isPending}
-                  className="block w-full rounded-xl border border-zinc-900 bg-black px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50"
                   placeholder="name@example.com"
                 />
               </div>
@@ -117,23 +117,24 @@ export default function SignupPage() {
                 Password
               </label>
               <div className="mt-1 relative">
-                <input
+                <Input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   disabled={isPending}
-                  className="block w-full rounded-xl border border-zinc-900 bg-black px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50 pr-10"
                   placeholder="••••••••"
+                  className="pr-10"
                 />
-                <button
+                <Button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  variant="ghost"
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-zinc-400 hover:text-zinc-200"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -142,33 +143,28 @@ export default function SignupPage() {
                 Confirm Password
               </label>
               <div className="mt-1 relative">
-                <input
+                <Input
                   id="confirmPassword"
                   name="confirmPassword"
                   type={showPassword ? "text" : "password"}
                   required
                   disabled={isPending}
-                  className="block w-full rounded-xl border border-zinc-900 bg-black px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors focus:border-red-500 focus:ring-1 focus:ring-red-500 disabled:opacity-50 pr-10"
                   placeholder="••••••••"
+                  className="pr-10"
                 />
               </div>
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
                 disabled={isPending}
-                className="flex w-full justify-center rounded-xl bg-gradient-to-r from-red-600 to-red-800 py-3 text-sm font-semibold text-white shadow-lg hover:from-red-550 hover:to-red-750 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                variant="primary"
+                className="flex w-full justify-center rounded-xl py-3 text-sm font-semibold shadow-lg transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
+                isLoading={isPending}
               >
-                {isPending ? (
-                  <span className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating account...
-                  </span>
-                ) : (
-                  "Create account"
-                )}
-              </button>
+                Create account
+              </Button>
             </div>
           </form>
 

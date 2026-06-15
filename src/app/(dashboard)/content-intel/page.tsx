@@ -1,7 +1,8 @@
 import { getCurrentUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getLatestScansForUser } from "@/lib/dashboard/scan-data";
-import { Lightbulb, TrendingUp, Sparkles, BarChart3, Zap } from "lucide-react";
+import { Lightbulb, TrendingUp, Sparkles, BarChart3, Zap, MessageSquare } from "lucide-react";
+import { prisma } from "@/lib/db";
 
 export default async function ContentIntelPage() {
   const user = await getCurrentUser();
@@ -16,11 +17,19 @@ export default async function ContentIntelPage() {
     dominantStyle?: string;
   } | null;
 
+  const rawComments = scan?.videoId
+    ? await prisma.commentIntelligence.findMany({
+        where: { videoId: scan.videoId, isContentGap: true },
+        take: 10,
+        orderBy: { publishedAt: "desc" },
+      })
+    : [];
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2 text-white tracking-tight">
+        <h1 className="text-2xl font-bold flex items-center gap-2 text-zinc-900 tracking-tight">
           <Lightbulb className="h-7 w-7 text-red-500" />
           Content Intelligence
         </h1>
@@ -52,7 +61,7 @@ export default async function ContentIntelPage() {
                   Content Effectiveness
                 </span>
               </div>
-              <span className="text-4xl font-extrabold text-white">
+              <span className="text-4xl font-extrabold text-zinc-900">
                 {scan.contentEffectivenessScore?.toFixed(1) ?? "—"}
               </span>
               <div className="grid grid-cols-2 gap-4 mt-4 text-xs text-zinc-500 border-t border-zinc-200 pt-3">
@@ -104,7 +113,7 @@ export default async function ContentIntelPage() {
                     Content Gaps Found
                   </span>
                 </div>
-                <span className="text-4xl font-extrabold text-white">
+                <span className="text-4xl font-extrabold text-zinc-900">
                   {contentGaps.length}
                 </span>
               </div>
@@ -145,6 +154,29 @@ export default async function ContentIntelPage() {
               </div>
             )}
           </section>
+
+          {/* Source Comments for Content Gaps */}
+          {rawComments.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-zinc-500" />
+                <h2 className="text-sm font-semibold text-zinc-500 uppercase tracking-wider">
+                  Source Comments
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {rawComments.map((c, i) => (
+                  <div
+                    key={i}
+                    className="p-4 rounded-xl border border-zinc-200 bg-zinc-50 text-sm text-zinc-700"
+                  >
+                    <p className="font-semibold text-zinc-900 mb-1">{c.authorName || "Anonymous"}</p>
+                    <p className="whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: c.rawText }} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Viral Hook Suggestions */}
           <section className="space-y-4">

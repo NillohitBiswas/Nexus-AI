@@ -241,7 +241,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-zinc-100 shadow-sm">
         <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-tr from-red-600 to-red-800 shadow-sm">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-tr from-red-600 to-red-800 shadow-sm">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
             <span className="font-extrabold text-lg tracking-tight text-zinc-900">
@@ -282,10 +282,10 @@ export default function LandingPage() {
       </header>
 
       {/* ─── Hero ────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-zinc-50 to-white pt-20 pb-24 px-6">
+      <section className="relative overflow-hidden bg-linear-to-b from-zinc-50 to-white pt-20 pb-24 px-6">
         {/* Decorative blobs */}
-        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full bg-red-50 blur-3xl opacity-60 pointer-events-none" />
-        <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-zinc-100 blur-3xl opacity-50 pointer-events-none" />
+        <div className="absolute -top-32 -right-32 w-125 h-125 rounded-full bg-red-50 blur-3xl opacity-60 pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-100 h-100 rounded-full bg-zinc-100 blur-3xl opacity-50 pointer-events-none" />
 
         <div className="relative mx-auto max-w-4xl text-center">
           {/* Badge */}
@@ -561,7 +561,7 @@ export default function LandingPage() {
       <footer className="bg-black border-t border-zinc-900 py-10 px-6">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-600">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-tr from-red-600 to-red-800">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-linear-to-tr from-red-600 to-red-800">
               <Sparkles className="h-3 w-3 text-white" />
             </div>
             <span className="font-bold text-zinc-400">NE<span className="text-red-600">X</span>US Insights</span>

@@ -20,7 +20,7 @@ export async function retryScanAction(scanId: string) {
     return { error: "Scan not found" };
   }
 
-  if (scan.video.channel.userId !== user.id) {
+  if (scan.userId !== user.id && scan.video.channel.userId !== user.id) {
     return { error: "Forbidden" };
   }
 

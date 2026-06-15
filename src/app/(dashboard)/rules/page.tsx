@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, startTransition } from "react";
 import Link from "next/link";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import {
   Sparkles,
   Plus,
@@ -158,13 +160,14 @@ export default function RulesPage() {
               </p>
             </div>
 
-            <button
+            <Button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="flex items-center gap-2 rounded-xl bg-red-600 hover:bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-all active:scale-[0.98] shadow-lg shadow-red-600/10"
+              variant="primary"
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm"
             >
               <Plus className="h-4 w-4" />
               <span>New Rule</span>
-            </button>
+            </Button>
           </div>
 
           {/* New Rule Creation Drawer/Box */}
@@ -179,28 +182,28 @@ export default function RulesPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-zinc-500 font-semibold block mb-1.5">Keywords (comma-separated)</label>
-                    <input
+                    <Input
                       type="text"
                       placeholder="e.g. bug, error, slow, tutorial"
                       value={keywords}
                       onChange={(e) => setKeywords(e.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-450 outline-none focus:border-red-500"
+                      className="w-full"
                     />
                   </div>
                   <div>
                     <label className="text-xs text-zinc-500 font-semibold block mb-1.5">Target Intents (comma-separated)</label>
-                    <input
+                    <Input
                       type="text"
                       placeholder="e.g. pricing, signup, support"
                       value={intents}
                       onChange={(e) => setIntents(e.target.value)}
-                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 placeholder-zinc-400 outline-none focus:border-red-500"
+                      className="w-full"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs text-zinc-500 font-semibold block mb-1.5 flex justify-between">
+                  <label className="text-xs text-zinc-500 font-semibold mb-1.5 flex justify-between">
                     <span>Reply Template</span>
                     <span className="text-[10px] text-zinc-500">Supports tone mirroring & empathy</span>
                   </label>
@@ -245,21 +248,23 @@ export default function RulesPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button
+                    <Button
                       type="button"
                       onClick={() => setShowAddForm(false)}
-                      className="rounded-xl border border-zinc-200 hover:bg-zinc-50 px-4 py-2 text-xs font-semibold"
+                      variant="ghost"
+                      className="rounded-xl px-4 py-2 text-xs font-semibold"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="submit"
                       disabled={actionLoading}
-                      className="rounded-xl bg-red-650 hover:bg-red-550 px-4 py-2 text-xs font-semibold text-white flex items-center gap-1"
+                      variant="primary"
+                      className="rounded-xl px-4 py-2 text-xs font-semibold flex items-center gap-1"
+                      isLoading={actionLoading}
                     >
-                      {actionLoading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                       <span>Save Rule</span>
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -297,22 +302,24 @@ export default function RulesPage() {
                       </span>
                       
                       <div className="flex items-center gap-1.5">
-                        <button
+                        <Button
                           onClick={() => handleToggleRule(rule.id, rule.isActive)}
-                          className="text-zinc-500 hover:text-white transition-colors"
+                          variant="ghost"
+                          className="text-zinc-500 hover:text-white transition-colors h-8 w-8 flex items-center justify-center"
                         >
                           {rule.isActive ? (
                             <ToggleRight className="h-6 w-6 text-red-500" />
                           ) : (
                             <ToggleLeft className="h-6 w-6 text-zinc-600" />
                           )}
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => handleDeleteRule(rule.id)}
-                          className="text-zinc-500 hover:text-red-400 p-1 rounded hover:bg-red-550/10 transition-colors"
+                          variant="ghost"
+                          className="text-zinc-500 hover:text-red-400 p-1 rounded transition-colors h-8 w-8 flex items-center justify-center"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
 
@@ -357,7 +364,7 @@ export default function RulesPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-zinc-200 bg-white p-4 backdrop-blur-sm space-y-4 max-h-[600px] overflow-y-auto">
+          <div className="rounded-2xl border border-zinc-200 bg-white p-4 backdrop-blur-sm space-y-4 max-h-150 overflow-y-auto">
             {logs.length === 0 ? (
               <p className="text-xs text-zinc-600 text-center py-8">No response history recorded yet.</p>
             ) : (
