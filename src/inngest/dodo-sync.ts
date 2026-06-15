@@ -20,18 +20,22 @@ export const dodoUsageSyncFn = inngest.createFunction(
     }
 
     // 2. Group by user
-    const userUsage = unreportedRecords.reduce((acc: Record<string, { records: any[], totalQuantity: number }>, record: any) => {
-      if (!acc[record.userId]) {
-        acc[record.userId] = { records: [], totalQuantity: 0 };
-      }
-      acc[record.userId].records.push(record);
-      acc[record.userId].totalQuantity += record.quantity;
-      return acc;
-    }, {} as Record<string, { records: any[], totalQuantity: number }>);
+    type UsageRec = { id: string; userId: string; quantity: number };
+    const userUsage = unreportedRecords.reduce(
+      (acc: Record<string, { records: UsageRec[]; totalQuantity: number }>, record: UsageRec) => {
+        if (!acc[record.userId]) {
+          acc[record.userId] = { records: [], totalQuantity: 0 };
+        }
+        acc[record.userId].records.push(record);
+        acc[record.userId].totalQuantity += record.quantity;
+        return acc;
+      },
+      {} as Record<string, { records: UsageRec[]; totalQuantity: number }>
+    );
 
     // 3. Report usage to Dodo Payments per user
     await step.run("report-to-dodo", async () => {
-      for (const [userId, data] of Object.entries(userUsage) as [string, { records: any[], totalQuantity: number }][]) {
+      for (const [userId, data] of Object.entries(userUsage) as [string, { records: UsageRec[]; totalQuantity: number }][]) {
         // Find user's active Dodo subscription
         const subscription = await prisma.subscription.findFirst({
           where: { 

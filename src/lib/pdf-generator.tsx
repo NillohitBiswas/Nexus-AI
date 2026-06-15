@@ -185,11 +185,11 @@ export async function generateAndUploadReport(scanId: string, agencyName: string
   const stream = await renderToStream(<ReportDocument scan={scan} themes={themes} agencyName={agencyName} />);
 
   // Convert NodeJS ReadableStream to Buffer
-  const chunks: any[] = [];
+  const chunks: Uint8Array[] = [];
   for await (const chunk of stream) {
-    chunks.push(chunk);
+    chunks.push(chunk as Uint8Array);
   }
-  const buffer = Buffer.concat(chunks);
+  const buffer = Buffer.concat(chunks.map((c) => Buffer.from(c)));
 
   // 3. Upload to InsForge Storage
   const client = await getServerInsforgeClient();

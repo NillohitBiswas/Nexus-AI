@@ -388,9 +388,15 @@ export const replyFlusherFn = inngest.createFunction(
           let replyId = "";
           try {
             replyId = await postYouTubeCommentReply(comment.youtubeCommentId, log.draftText, accessToken);
-          } catch (apiErr: any) {
+          } catch (apiErr: unknown) {
             // If 401/expired, try refreshing once
-            if (apiErr.message?.includes("Unauthorized") || apiErr.message?.includes("invalid_grant") || refreshToken) {
+            const _apiErrMessage =
+              apiErr instanceof Error
+                ? apiErr.message
+                : typeof apiErr === "string"
+                ? apiErr
+                : JSON.stringify(apiErr);
+            if (_apiErrMessage.includes("Unauthorized") || _apiErrMessage.includes("invalid_grant") || refreshToken) {
               console.log("Access token expired, attempting to refresh token...");
               const newAccessToken = await refreshAccessToken(refreshToken);
               const newEncryptedToken = encrypt(newAccessToken);
@@ -436,8 +442,10 @@ export const replyFlusherFn = inngest.createFunction(
           });
 
           processedCount++;
-        } catch (postErr: any) {
-          console.error(`Failed to post reply for log ${log.id}:`, postErr);
+        } catch (postErr: unknown) {
+          const _postErrMessage =
+            postErr instanceof Error ? postErr.message : typeof postErr === "string" ? postErr : JSON.stringify(postErr);
+          console.error(`Failed to post reply for log ${log.id}:`, _postErrMessage);
           await prisma.responseLog.update({
             where: { id: log.id },
             data: { status: "FAILED" },

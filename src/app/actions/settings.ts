@@ -32,8 +32,9 @@ export async function saveBYOKCredentials(formData: FormData): Promise<void> {
     });
 
     revalidatePath("/settings");
-  } catch (error: any) {
-    console.error("Failed to save BYOK credentials:", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error);
+    console.error("Failed to save BYOK credentials:", msg);
     throw new Error("Failed to encrypt and save credentials.");
   }
 }
@@ -83,8 +84,9 @@ export async function disableBYOK(): Promise<void> {
     });
 
     revalidatePath("/settings");
-  } catch (error: any) {
-    console.error("Failed to disable BYOK:", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error);
+    console.error("Failed to disable BYOK:", msg);
     throw new Error("Failed to disable BYOK.");
   }
 }
@@ -118,9 +120,10 @@ export async function disconnectChannel(channelId: string): Promise<void> {
 
     revalidatePath("/settings");
     revalidatePath("/analyzer");
-  } catch (error: any) {
-    console.error("Failed to disconnect channel:", error);
-    throw new Error("Failed to disconnect channel: " + error.message);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error);
+    console.error("Failed to disconnect channel:", msg);
+    throw new Error("Failed to disconnect channel: " + msg);
   }
 }
 

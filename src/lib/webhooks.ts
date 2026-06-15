@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 
 export type WebhookEvent = 'scan.completed' | 'alert.emergency' | 'reply.posted';
 
-export async function deliverWebhook(userId: string, event: WebhookEvent, payload: any) {
+export async function deliverWebhook(userId: string, event: WebhookEvent, payload: unknown) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },

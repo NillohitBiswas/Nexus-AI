@@ -17,8 +17,9 @@ export async function generateWhiteLabelReport(scanId: string, agencyName: strin
   try {
     const result = await generateAndUploadReport(scanId, agencyName || "Nexus Insights Agency");
     return result; // { success: true, url: "..." }
-  } catch (error: any) {
-    console.error("Report generation failed:", error);
-    return { error: error.message || "Failed to generate report" };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : typeof error === "string" ? error : JSON.stringify(error);
+    console.error("Report generation failed:", msg);
+    return { error: msg || "Failed to generate report" };
   }
 }

@@ -54,11 +54,11 @@ export async function GET(request: NextRequest) {
     );
 
     // Read stream chunks into a buffer
-    const chunks: any[] = [];
+    const chunks: Uint8Array[] = [];
     for await (const chunk of stream) {
-      chunks.push(chunk);
+      chunks.push(chunk as Uint8Array);
     }
-    const pdfBuffer = Buffer.concat(chunks);
+    const pdfBuffer = Buffer.concat(chunks.map((c) => Buffer.from(c)));
 
     // Return the PDF buffer directly as a download
     return new NextResponse(pdfBuffer, {

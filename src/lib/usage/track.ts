@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import {
   estimateApifyCost,
   estimateGeminiEmbedCost,
@@ -37,7 +38,7 @@ export async function trackApiUsage(input: TrackApiUsageInput): Promise<void> {
         model: input.model ?? null,
         units: input.units ?? 1,
         amount: input.amount ?? 0,
-        metadata: input.metadata ? (input.metadata as any) : undefined,
+        metadata: input.metadata ? (input.metadata as unknown as Prisma.InputJsonValue) : undefined,
       },
     });
   } catch (err) {
@@ -48,7 +49,7 @@ export async function trackApiUsage(input: TrackApiUsageInput): Promise<void> {
 export function trackApiUsageFireAndForget(input: TrackApiUsageInput): void {
   void trackApiUsage(input);
 }
-
+ 
 export function trackGroqCompletion(opts: {
   userId?: string | null;
   scanId?: string | null;

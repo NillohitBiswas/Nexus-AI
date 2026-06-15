@@ -83,7 +83,10 @@ export async function GET(request: NextRequest) {
           sentiment: s.weightedSentiment,
           painIndex: s.weightedPainIndex,
           demandVelocity: s.weightedDemandVelocity,
-          healthScore: s.executiveSummary ? (s.executiveSummary as any).audienceHealthScore : null
+          healthScore:
+            s.executiveSummary && typeof s.executiveSummary === "object"
+              ? ((s.executiveSummary as { audienceHealthScore?: number }).audienceHealthScore ?? null)
+              : null,
         },
         completedAt: s.completedAt,
       })),
