@@ -46,8 +46,9 @@ export function ChannelManager({
       try {
         await disconnectChannel(channelId);
         setChannels((prev) => prev.filter((c) => c.id !== channelId));
-      } catch (err: any) {
-        alert(err.message || "Failed to disconnect channel.");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        alert(message || "Failed to disconnect channel.");
       } finally {
         setDeletingId(null);
       }

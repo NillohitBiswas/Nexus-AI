@@ -106,8 +106,9 @@ export default function RulesPage() {
       
       // Reload
       await loadData();
-    } catch (err: any) {
-      setErrorMsg(err.message || "Failed to create rule");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setErrorMsg(message || "Failed to create rule");
     } finally {
       setActionLoading(false);
     }

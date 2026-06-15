@@ -653,10 +653,10 @@ Expected JSON Output format:
       });
 
       return { status: "COMPLETE" };
-    } catch (err: any) {
+    } catch (err: unknown) {
       const message =
-        err?.message ||
-        err?.error?.message ||
+        (err instanceof Error && err.message) ||
+        (typeof err === "object" && err !== null && "error" in err && (err as any).error?.message) ||
         (typeof err === "string" ? err : "Analysis pipeline failed");
       console.error(`Inngest function analyzeVideoFn failed:`, err);
       await prisma.scan.update({

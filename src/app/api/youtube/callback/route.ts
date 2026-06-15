@@ -133,10 +133,11 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.redirect(new URL("/analyzer?success=channel_connected", request.url));
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("YouTube callback execution error:", err);
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.redirect(
-      new URL("/analyzer?error=" + encodeURIComponent(err.message || "unexpected_error"), request.url)
+      new URL("/analyzer?error=" + encodeURIComponent(message || "unexpected_error"), request.url)
     );
   }
 }

@@ -68,8 +68,9 @@ export async function GET(request: NextRequest) {
         "Content-Disposition": `attachment; filename="nexus_report_${scanId}.pdf"`,
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("PDF download route error:", err);
-    return new NextResponse(err.message || "Internal server error", { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return new NextResponse(message || "Internal server error", { status: 500 });
   }
 }

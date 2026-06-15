@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, startTransition } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { getDashboardData, getYoutubeOAuthUrl } from "../../actions/youtube";
 import { retryScanAction } from "../../actions/scans";
@@ -213,7 +213,9 @@ export default function AnalyzerPage() {
         : null
     );
     if (savedId && scans.some((s) => s.id === savedId)) {
-      void handleLoadPastScan(savedId);
+      startTransition(() => {
+        void handleLoadPastScan(savedId);
+      });
       return;
     }
 
@@ -283,11 +285,12 @@ export default function AnalyzerPage() {
               "Analysis pipeline failed. Open Scan History for details, then try a new scan."
           );
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Polling error:", err);
         setActiveScanId(null);
         setScanLoading(false);
-        setScanError(err.message || "An error occurred during polling.");
+        const message = err instanceof Error ? err.message : String(err);
+        setScanError(message || "An error occurred during polling.");
       }
     }, 2000);
 
@@ -324,8 +327,9 @@ export default function AnalyzerPage() {
       }
 
       setActiveScanId(data.scanId);
-    } catch (err: any) {
-      setScanError(err.message || "An unexpected error occurred");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setScanError(message || "An unexpected error occurred");
       setScanLoading(false);
     }
   };

@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("API /v1/scans error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

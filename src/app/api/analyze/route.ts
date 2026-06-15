@@ -79,9 +79,10 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json(refreshedScan);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("GET analyze route error:", err);
-    return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message || "Internal server error" }, { status: 500 });
   }
 }
 
@@ -229,8 +230,9 @@ export async function POST(request: NextRequest) {
       videoId: dbVideo.id,
       status: scan.status,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("POST analyze route error:", err);
-    return NextResponse.json({ error: err.message || "Internal server error" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message || "Internal server error" }, { status: 500 });
   }
 }
