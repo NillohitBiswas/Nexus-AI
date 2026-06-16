@@ -25,14 +25,14 @@ model User {
 
 model Channel {
   id                  String               @id @default(uuid())
-  userId              String
+  userId              String?
   youtubeAccessToken  String?
   youtubeRefreshToken String?
   name                String
   subCount            Int                  @default(0)
   thumbnail           String?
   isCompetitor        Boolean              @default(false)
-  user                User                 @relation(fields: [userId], references: [id])
+  user                User?                @relation(fields: [userId], references: [id])
   commenters          ChannelCommenter[]
   termHistory         ChannelTermHistory[]
   videos              Video[]
