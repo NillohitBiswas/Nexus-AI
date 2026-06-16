@@ -18,6 +18,7 @@ model User {
   apiUsageEvents ApiUsageEvent[]
   channels       Channel[]
   responseRules  ResponseRule[]
+  Scan           Scan[]
   subscriptions  Subscription[]
   usageRecords   UsageRecord[]
 }
@@ -138,6 +139,7 @@ model Scan {
   competitorMentions        CompetitorMention[]
   newsCorrelations          NewsCorrelation[]
   video                     Video               @relation(fields: [videoId], references: [id])
+  User                      User?               @relation(fields: [userId], references: [id], onUpdate: NoAction, map: "fk_scan_userid")
   themes                    ScanTheme[]
 }
 
